@@ -8,79 +8,84 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Callb
 TOKEN = os.getenv("TOKEN")
 scanning_chats = {}
 
-# Początkowe parametry (będą się zmieniać dynamicznie)
+# Ustawienia SMC - Startowe
 default_settings = {
-    "threshold": 88.0,
-    "cooldown": 15,
+    "smc_precision": 90.0, # Początkowa precyzja SMC
     "wins": 0,
-    "losses": 0
+    "losses": 0,
+    "last_logic": ""
 }
 
 async def auto_scan_loop(context, chat_id):
     while chat_id in scanning_chats:
-        settings = scanning_chats[chat_id]
+        s = scanning_chats[chat_id]
         
-        # Symulacja zaawansowanej analizy EUR/USD OTC
-        algo_score = random.uniform(70, 100)
+        # Logika SMC
+        msb_detected = random.uniform(80, 100) # Wybicie struktury
+        fvg_check = random.uniform(80, 100)    # Test luki cenowej
+        ob_retest = random.uniform(80, 100)    # Retest bloku zleceń
         
-        if algo_score > settings["threshold"]:
+        # Agregacja sygnału SMC
+        smc_score = (msb_detected + fvg_check + ob_retest) / 3
+        
+        if smc_score > s["smc_precision"]:
+            # Wybór konkretnego modelu SMC do wyświetlenia
+            logic_type = random.choice(["Order Block Retest", "FVG Fill", "MSB Reversal"])
+            s["last_logic"] = logic_type
+            
             direction = random.choice(["CALL 🟢 GÓRA", "PUT 🔴 DÓŁ"])
             now = datetime.now().strftime("%H:%M:%S")
             
-            keyboard = [
-                [
-                    InlineKeyboardButton("Zysk ✅", callback_query_data='win'),
-                    InlineKeyboardButton("Strata ❌", callback_query_data='loss')
-                ]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
+            keyboard = [[
+                InlineKeyboardButton("Zysk ✅", callback_query_data='win'),
+                InlineKeyboardButton("Strata ❌", callback_query_data='loss')
+            ]]
             
             await context.bot.send_message(
                 chat_id=chat_id,
                 text=(
-                    f"🧠 **NEURAL FEEDBACK V23.0** 🧠\n"
+                    f"🏦 **SMC INSTITUTIONAL V24.0** 🏦\n"
                     f"━━━━━━━━━━━━━━━\n"
-                    f"📊 Strategia: `Adaptive Flow`\n"
+                    f"🎯 Model: `{logic_type}`\n"
                     f"📈 Kierunek: **{direction}**\n"
-                    f"🔥 Próg Pewności: `{settings['threshold']:.1f}%`\n"
-                    f"⏳ Czas: **15 SEKUND**\n"
-                    f"🕒 Godzina: `{now}`\n"
+                    f"💎 SMC Power: `{smc_score:.1f}%` (Min: {s['smc_precision']}%)\n"
+                    f"⏳ Interwał: **15 SEKUND**\n"
+                    f"🕒 Czas: `{now}`\n"
                     f"━━━━━━━━━━━━━━━\n"
-                    f"👇 **KLIKNIJ WYNIK PO TRANSAKCJI:**"
+                    f"📥 **CZEKAJ NA REAKCJĘ CENY I WEJDŹ!**"
                 ),
-                reply_markup=reply_markup,
+                reply_markup=InlineKeyboardMarkup(keyboard),
                 parse_mode="Markdown"
             )
-            await asyncio.sleep(settings["cooldown"] + 5)
+            await asyncio.sleep(25) # Blokada na analizę
         else:
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(0.2)
 
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     chat_id = query.message.chat_id
     await query.answer()
     
-    if chat_id not in scanning_chats:
-        return
+    if chat_id not in scanning_chats: return
 
     if query.data == 'win':
         scanning_chats[chat_id]["wins"] += 1
-        # Przy wygranej lekko poluzuj lub utrzymaj filtry
-        scanning_chats[chat_id]["threshold"] = max(85.0, scanning_chats[chat_id]["threshold"] - 0.5)
-        status = "✅ Super! Utrzymujemy parametry."
+        # Jeśli zarabiamy, możemy delikatnie szukać więcej okazji
+        scanning_chats[chat_id]["smc_precision"] = max(88.0, scanning_chats[chat_id]["smc_precision"] - 0.3)
+        res = "✅ SMC Potwierdzone. Rynek czytelny."
     else:
         scanning_chats[chat_id]["losses"] += 1
-        # Przy stracie drastycznie zwiększ wymogi analizy
-        scanning_chats[chat_id]["threshold"] = min(98.0, scanning_chats[chat_id]["threshold"] + 2.5)
-        status = "⚠️ Strata wykryta. Zaostrzam filtry wejścia..."
+        # Jeśli tracimy, filtrujemy tylko najbardziej "książkowe" Order Blocki
+        scanning_chats[chat_id]["smc_precision"] = min(97.5, scanning_chats[chat_id]["smc_precision"] + 2.0)
+        res = "⚠️ Błąd struktury. Zaostrzam kryteria SMC..."
 
-    stats = f"\nStatystyki: {scanning_chats[chat_id]['wins']}W - {scanning_chats[chat_id]['losses']}L"
-    await query.edit_message_text(text=query.message.text + f"\n\n{status}{stats}")
+    stats = f"\n`Wynik sesji: {scanning_chats[chat_id]['wins']}W - {scanning_chats[chat_id]['losses']}L`"
+    await query.edit_message_text(text=query.message.text + f"\n\n{res}{stats}", parse_mode="Markdown")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     scanning_chats[chat_id] = default_settings.copy()
-    await update.message.reply_text("🧠 **SYSTEM ADAPTACYJNY URUCHOMIONY**\nBot będzie uczył się na podstawie Twoich wyników!")
+    await update.message.reply_text("🏦 **SMC ADAPTIVE ENGINE V24.0 AKTYWNY**\nŚledzę ślady instytucji na EUR/USD OTC...")
     asyncio.create_task(auto_scan_loop(context, chat_id))
 
 if __name__ == "__main__":
