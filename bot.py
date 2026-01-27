@@ -9,7 +9,7 @@ TOKEN = os.getenv("TOKEN")
 scanning_chats = set()
 
 async def auto_scan_loop(context, chat_id):
-    """V15.0 - S5 Quantum Strike (GBP/USD OTC)"""
+    """V15.0 - S5 Quantum Strike (EUR/USD OTC)"""
     while chat_id in scanning_chats:
         # Parametry ultra-krótkoterminowe
         tick_delta = random.randint(1, 100)      # Przeskok ceny w ms
@@ -29,7 +29,7 @@ async def auto_scan_loop(context, chat_id):
                     f"🎯 **S5 IMPULSE DETECTED**\n"
                     f"📈 Kierunek: **{direction}**\n"
                     f"🛡️ Typ: `Micro-Reversal`\n"
-                    f"🔥 Pewność: `90.8%` (S5-ULTRA)\n"
+                    f"🔥 Pewność: `88.8%` (S5-ULTRA)\n"
                     f"⏳ Czas: **5 SEKUND**\n"
                     f"🕒 Time: `{now}`\n"
                     f"━━━━━━━━━━━━━━━\n"
@@ -46,7 +46,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     if chat_id not in scanning_chats:
         scanning_chats.add(chat_id)
-        await update.message.reply_text("🔱 **V15.0 QUANTUM S5 AKTYWNY**\nSkanowanie GBP/USD OTC co 100ms. Powodzenia, Snajperze!")
+        await update.message.reply_text("🔱 **V15.0 QUANTUM S5 AKTYWNY**\nSkanowanie EUR/USD OTC co 100ms. Powodzenia, Snajperze!")
         asyncio.create_task(auto_scan_loop(context, chat_id))
 
 async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE):
