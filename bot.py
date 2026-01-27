@@ -66,7 +66,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             # Warunek: Tylko bardzo wysoka lub bardzo niska wartość (skrajne wychylenia SMC)
             if power > 80 or power < 20:
                 found_strong_signal = True
-                pair = random.choice(["EUR/USD OTC", "GBP/USD OTC", "USD/JPY OTC"])
+                pair = random.choice(["EUR/USD OTC"])
                 
                 if power > 80:
                     direction = "CALL 🟢 (GÓRA)"
