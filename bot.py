@@ -36,7 +36,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Losowy sygnał (później tu dodamy Twoją strategię)
     signal = random.choice(["CALL 🟢 (GÓRA)", "PUT 🔴 (DÓŁ)"])
-    pair = random.choice(["EUR/USD OTC", "GBP/JPY OTC", "AUD/CAD OTC"])
+    pair = random.choice(["EUR/USD OTC"])
 
     await query.message.reply_text(
         f"🚨 **NOWY SYGNAŁ** 🚨\n\n"
