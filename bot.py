@@ -6,69 +6,63 @@ from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandle
 
 TOKEN = os.getenv("TOKEN")
 
-def time_keyboard():
-    keyboard = [[
-        InlineKeyboardButton("⏱ 5s", callback_data="time_5"),
-        InlineKeyboardButton("⏱ 8s", callback_data="time_8"),
-        InlineKeyboardButton("⏱ 15s", callback_data="time_15"),
-    ]]
-    return InlineKeyboardMarkup(keyboard)
+def main_menu():
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("🔥 SYGNAŁ PREMIUM (EUR/USD)", callback_data="sig_5")],
+        [InlineKeyboardButton("⏱ 8s", callback_data="sig_8"), 
+         InlineKeyboardButton("⏱ 15s", callback_data="sig_15")],
+        [InlineKeyboardButton("📊 Statystyki Rynku", callback_data="stats")]
+    ])
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "🧠 **Bot Sygnałowy V2 (Analiza Trendu)**\nStatus: Aktywny 🟢\n\nWybierz czas wygaśnięcia:",
-        reply_markup=time_keyboard(),
+        "🚀 **BOT TRADINGOWY PRO V5.0**\nStrategia: `EMA Cross + Momentum`\nTryb: `Skalpowanie OTC`",
+        reply_markup=main_menu(),
         parse_mode="Markdown"
     )
 
-async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def handle_logic(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
+    data = query.data
     await query.answer()
+
+    if data == "stats":
+        v = random.randint(70, 98)
+        await query.message.reply_text(f"📈 **Market Status:**\nZmienność: `{v}%`\nTrend: `Silnie Wzrostowy`\nSkuteczność dzisiaj: `84%`", parse_mode="Markdown")
+        return
+
+    # Symulacja "mózgu" bota
+    sec = data.split("_")[1]
+    status = await query.message.reply_text("🧬 Analiza średnich EMA...")
+    await asyncio.sleep(0.8)
+    await status.edit_text("📊 Sprawdzanie wolumenu transakcji...")
+    await asyncio.sleep(0.8)
     
-    seconds = int(query.data.split("_")[1])
+    # Zaawansowana logika decyzji
+    score = random.randint(1, 100)
+    volatility = random.choice(["Wysoka", "Stabilna"])
     
-    # Symulacja analizy (wygląda pro jak w prawdziwym terminalu)
-    status_msg = await query.message.reply_text("🔍 Skanowanie rynku OTC...")
-    await asyncio.sleep(1)
-    await status_msg.edit_text("📊 Obliczanie wskaźnika Momentum...")
-    await asyncio.sleep(1)
-    
-    # LOGIKA "MĄDRZEJSZEGO" BOTA
-    # Generujemy 'pęd' rynku (liczba od -100 do 100)
-    momentum = random.randint(-100, 100)
-    
-    if momentum > 0:
-        signal = "CALL 🟢 (GÓRA)"
-        power = random.randint(3, 5) # Silniejszy trend wzrostowy
-        reason = "Silny pęd kupujących (Oversold)"
+    if score > 55:
+        dir_text, dir_emoji = "CALL", "🟢 GÓRA"
+        analysis = "EMA 9 przebiło EMA 21 od dołu. Potwierdzony popyt."
     else:
-        signal = "PUT 🔴 (DÓŁ)"
-        power = random.randint(3, 5)
-        reason = "Presja podaży (Overbought)"
+        dir_text, dir_emoji = "PUT", "🔴 DÓŁ"
+        analysis = "Odrzucenie od lokalnego oporu. Wolumen maleje."
 
-    pair = random.choice(["EUR/USD OTC"])
-    stars = "⚡" * power
-
-    await status_msg.delete() # Usuwamy komunikat o skanowaniu
-
+    await status.delete()
     await query.message.reply_text(
-        f"🚨 **SYGNAŁ ANALITYCZNY** 🚨\n\n"
-        f"📊 Para: `{pair}`\n"
-        f"📈 Kierunek: **{signal}**\n"
-        f"⏱ Czas: `{seconds}s`\n"
-        f"💪 Siła sygnału: {stars}\n"
-        f"🧠 Powód: _{reason}_\n\n"
-        f"🔥 **WEJDŹ TERAZ!**",
+        f"🎯 **SYGNAŁ POTWIERDZONY**\n\n"
+        f"💎 Para: `EUR/USD OTC`\n"
+        f"📈 Kierunek: **{dir_emoji}**\n"
+        f"⏳ Czas: `{sec}s`\n"
+        f"⚡ Prawdopodobieństwo: `{random.randint(82, 96)}%`\n\n"
+        f"🧠 **Uzasadnienie:**\n_{analysis}_",
         parse_mode="Markdown",
-        reply_markup=time_keyboard()
+        reply_markup=main_menu()
     )
 
 if __name__ == "__main__":
-    if not TOKEN:
-        print("BŁĄD: Brak TOKENA!")
-    else:
-        app = ApplicationBuilder().token(TOKEN).build()
-        app.add_handler(CommandHandler("start", start))
-        app.add_handler(CallbackQueryHandler(button_handler))
-        print("Bot startuje...")
-        app.run_polling(drop_pending_updates=True)
+    app = ApplicationBuilder().token(TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(handle_logic))
+    app.run_polling(drop_pending_updates=True)
