@@ -1,68 +1,101 @@
 import os
 import random
 import asyncio
+from datetime import datetime
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 
 TOKEN = os.getenv("TOKEN")
 
-def main_menu():
-    return InlineKeyboardMarkup([
-        [InlineKeyboardButton("🔥 SYGNAŁ PREMIUM (EUR/USD)", callback_data="sig_5")],
-        [InlineKeyboardButton("⏱ 8s", callback_data="sig_8"), 
-         InlineKeyboardButton("⏱ 15s", callback_data="sig_15")],
-        [InlineKeyboardButton("📊 Statystyki Rynku", callback_data="stats")]
-    ])
+# Statystyki sesji
+session_data = {"wins": 0, "losses": 0}
+
+def main_keyboard():
+    keyboard = [
+        [InlineKeyboardButton("⏱ 5 SEC 🟢", callback_data="t_5"),
+         InlineKeyboardButton("⏱ 8 SEC 🟡", callback_data="t_8")],
+        [InlineKeyboardButton("⏱ 12 SEC 🔴", callback_data="t_12"),
+         InlineKeyboardButton("⏱ 15 SEC 🟣", callback_data="t_15")],
+        [InlineKeyboardButton("🏠 Menu Główne", callback_data="main_menu")]
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
+def result_keyboard():
+    keyboard = [[
+        InlineKeyboardButton("✅ ITM (WIN)", callback_data="res_win"),
+        InlineKeyboardButton("❌ OTM (LOSS)", callback_data="res_loss")
+    ]]
+    return InlineKeyboardMarkup(keyboard)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "🚀 **BOT TRADINGOWY PRO V5.0**\nStrategia: `EMA Cross + Momentum`\nTryb: `Skalpowanie OTC`",
-        reply_markup=main_menu(),
+        "🐻 **POCKET MASTER ELITE V32** 🐻\n"
+        "Status: `LIVE SCANNING` 🟢\n"
+        "Rynek: `AUD/CAD OTC` (lub inne)\n\n"
+        "Wybierz czas wejścia (Sygnały 4-5⭐):",
+        reply_markup=main_keyboard(),
         parse_mode="Markdown"
     )
 
-async def handle_logic(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     data = query.data
     await query.answer()
 
-    if data == "stats":
-        v = random.randint(70, 98)
-        await query.message.reply_text(f"📈 **Market Status:**\nZmienność: `{v}%`\nTrend: `Silnie Wzrostowy`\nSkuteczność dzisiaj: `84%`", parse_mode="Markdown")
+    if data == "main_menu":
+        await query.message.edit_text("Wybierz interwał:", reply_markup=main_keyboard())
         return
 
-    # Symulacja "mózgu" bota
-    sec = data.split("_")[1]
-    status = await query.message.reply_text("🧬 Analiza średnich EMA...")
-    await asyncio.sleep(0.8)
-    await status.edit_text("📊 Sprawdzanie wolumenu transakcji...")
-    await asyncio.sleep(0.8)
-    
-    # Zaawansowana logika decyzji
-    score = random.randint(1, 100)
-    volatility = random.choice(["Wysoka", "Stabilna"])
-    
-    if score > 55:
-        dir_text, dir_emoji = "CALL", "🟢 GÓRA"
-        analysis = "EMA 9 przebiło EMA 21 od dołu. Potwierdzony popyt."
-    else:
-        dir_text, dir_emoji = "PUT", "🔴 DÓŁ"
-        analysis = "Odrzucenie od lokalnego oporu. Wolumen maleje."
+    if data.startswith("res_"):
+        if "win" in data: session_data["wins"] += 1
+        else: session_data["losses"] += 1
+        winrate = (session_data["wins"] / (session_data["wins"] + session_data["losses"])) * 100
+        await query.message.reply_text(
+            f"📊 **Statystyki: {session_data['wins']}W - {session_data['losses']}L**\n"
+            f"🎯 Winrate: `{winrate:.1f}%`", 
+            reply_markup=main_keyboard()
+        )
+        return
 
-    await status.delete()
-    await query.message.reply_text(
-        f"🎯 **SYGNAŁ POTWIERDZONY**\n\n"
-        f"💎 Para: `EUR/USD OTC`\n"
-        f"📈 Kierunek: **{dir_emoji}**\n"
-        f"⏳ Czas: `{sec}s`\n"
-        f"⚡ Prawdopodobieństwo: `{random.randint(82, 96)}%`\n\n"
-        f"🧠 **Uzasadnienie:**\n_{analysis}_",
-        parse_mode="Markdown",
-        reply_markup=main_menu()
-    )
+    if data.startswith("t_"):
+        seconds = data.split("_")[1]
+        msg = await query.message.reply_text("📡 **ANALIZOWANIE PŁYNNOŚCI...**")
+        
+        # Szukamy tylko sygnału 4-5 gwiazdek
+        while True:
+            power = random.randint(1, 100)
+            if power > 80 or power < 20: # Filtr 4-5 gwiazdek
+                break
+            await asyncio.sleep(0.2)
+
+        pair = random.choice(["AUD/CAD OTC", "EUR/USD OTC", "GBP/JPY OTC"])
+        is_inversion = random.choice([True, False, False]) # 33% szans na inwersję
+        
+        if power > 50:
+            direction = "CALL ⬆️" if not is_inversion else "PUT ⬇️ (INWERSJA)"
+            emoji = "🟢" if not is_inversion else "🟠"
+        else:
+            direction = "PUT ⬇️" if not is_inversion else "CALL ⬆️ (INWERSJA)"
+            emoji = "🔴" if not is_inversion else "🔵"
+
+        stars = "⭐⭐⭐⭐⭐" if (power > 92 or power < 8) else "⭐⭐⭐⭐"
+        
+        await msg.delete()
+        await query.message.reply_text(
+            f"{emoji} **SYGNAŁ POTWIERDZONY** {emoji}\n"
+            f"━━━━━━━━━━━━━━━\n"
+            f"💹 Para: `{pair}`\n"
+            f"📈 Kierunek: **{direction}**\n"
+            f"⏳ Czas: `{seconds} SEC`\n"
+            f"💪 Pewność: {stars}\n"
+            f"━━━━━━━━━━━━━━━\n"
+            f"🔥 **WCHODŹ TERAZ NA POCKET OPTION!**",
+            reply_markup=result_keyboard(),
+            parse_mode="Markdown"
+        )
 
 if __name__ == "__main__":
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(handle_logic))
-    app.run_polling(drop_pending_updates=True)
+    app.add_handler(CallbackQueryHandler(button_handler))
+    app.run_polling()
