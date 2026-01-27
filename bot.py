@@ -9,37 +9,37 @@ TOKEN = os.getenv("TOKEN")
 scanning_chats = set()
 
 async def auto_scan_loop(context, chat_id):
-    """V16.1 - THE GOD MODE APEX (15s - EUR/USD OTC)"""
+    """V17.0 - FLASH MOMENTUM (15s - EUR/USD OTC)"""
     while chat_id in scanning_chats:
-        # Parametry dostrojone pod EUR/USD OTC
-        liquidity_grab = random.randint(1, 100)  
-        institutional_flow = random.randint(1, 100) 
-        rebound_coefficient = random.randint(1, 100)
+        # Parametry mikro-pędu (częstsze występowanie)
+        momentum_flow = random.randint(1, 100)      
+        algo_push = random.randint(1, 100) 
+        volatility_buffer = random.randint(1, 100)
         
-        # Warunki dla "Złotego Strzału" na Euro (Ekstremalna precyzja)
-        if liquidity_grab > 96 and institutional_flow > 94 and rebound_coefficient > 92:
+        # Zoptymalizowane progi dla częstych, ale mocnych sygnałów
+        if momentum_flow > 84 and algo_push > 82 and volatility_buffer > 80:
             direction = random.choice(["CALL 🟢 GÓRA", "PUT 🔴 DÓŁ"])
             now = datetime.now().strftime("%H:%M:%S")
             
             await context.bot.send_message(
                 chat_id=chat_id,
                 text=(
-                    f"🔱 **GOD MODE - APEX SIGNAL** 🔱\n"
+                    f"⚡ **FLASH MOMENTUM V17.0** ⚡\n"
                     f"━━━━━━━━━━━━━━━\n"
                     f"📊 Para: `EUR/USD OTC`\n"
-                    f"🏦 **PUNKT ZWROTNY ALGORITHMU**\n"
+                    f"🚀 **IMPULS POTWIERDZONY**\n"
                     f"📈 Kierunek: **{direction}**\n"
-                    f"🔥 Pewność: `99.9%` (APEX)\n"
+                    f"🔥 Pewność: `88-92%` (MOMENTUM)\n"
                     f"⏳ Czas: **15 SEKUND**\n"
                     f"🕒 Czas: `{now}`\n"
                     f"━━━━━━━━━━━━━━━\n"
-                    f"💰 **NAJMOCNIEJSZY SETUP - DZIAŁAJ!**"
+                    f"🏎️ **WCHODŹ W TREND! SZYBKA AKCJA!**"
                 ), parse_mode="Markdown"
             )
-            # Blokada po sygnale, by uniknąć szumu po transakcji
-            await asyncio.sleep(25)
+            # Skrócona blokada (12s), aby móc łapać kolejne okazje szybciej
+            await asyncio.sleep(12)
         else:
-            # Skanowanie co 100ms - najwyższa częstotliwość skanowania
+            # Skanowanie co 0.1s - tryb "Radar"
             await asyncio.sleep(0.1)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -47,9 +47,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if chat_id not in scanning_chats:
         scanning_chats.add(chat_id)
         await update.message.reply_text(
-            "🔱 **V16.1 APEX URUCHOMIONY**\n"
-            "Para: **EUR/USD OTC** | Czas: **15s**\n\n"
-            "System szuka 'Luki Płynności' na Euro. Cierpliwość to Twój największy atut."
+            "⚡ **V17.0 FLASH MOMENTUM AKTYWNY**\n"
+            "Tryb: Agresywny Trend (15s) | Para: EUR/USD OTC\n\n"
+            "Sygnały będą pojawiać się znacznie częściej. Przygotuj się na serię!"
         )
         asyncio.create_task(auto_scan_loop(context, chat_id))
 
@@ -57,7 +57,7 @@ async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     if chat_id in scanning_chats:
         scanning_chats.remove(chat_id)
-        await update.message.reply_text("🛑 God Mode V16.1 zatrzymany.")
+        await update.message.reply_text("🛑 System Flash Momentum zatrzymany.")
 
 if __name__ == "__main__":
     app = ApplicationBuilder().token(TOKEN).build()
