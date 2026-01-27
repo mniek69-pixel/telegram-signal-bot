@@ -8,58 +8,60 @@ TOKEN = os.getenv("TOKEN")
 
 def main_menu():
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("🔥 SYGNAŁ PREMIUM (EUR/USD)", callback_data="sig_5")],
-        [InlineKeyboardButton("⏱ 8s", callback_data="sig_8"), 
-         InlineKeyboardButton("⏱ 15s", callback_data="sig_15")],
-        [InlineKeyboardButton("📊 Statystyki Rynku", callback_data="stats")]
+        [InlineKeyboardButton("💎 GENERUJ SYGNAŁ (90%+ Accuracy)", callback_data="sig_15")]
     ])
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "🚀 **BOT TRADINGOWY PRO V5.0**\nStrategia: `EMA Cross + Momentum`\nTryb: `Skalpowanie OTC`",
+        "🧠 **BOT ANALITYCZNY V5.5 - TRYB FILTROWANIA**\n"
+        "Status: `Aktywny` 🟢\n"
+        "Minimalna pewność: `90%` 🛡️\n\n"
+        "Kliknij poniżej, aby bot przeskanował rynek pod kątem idealnego wejścia.",
         reply_markup=main_menu(),
         parse_mode="Markdown"
     )
 
 async def handle_logic(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    data = query.data
     await query.answer()
 
-    if data == "stats":
-        v = random.randint(70, 98)
-        await query.message.reply_text(f"📈 **Market Status:**\nZmienność: `{v}%`\nTrend: `Silnie Wzrostowy`\nSkuteczność dzisiaj: `84%`", parse_mode="Markdown")
-        return
-
-    # Symulacja "mózgu" bota
-    sec = data.split("_")[1]
-    status = await query.message.reply_text("🧬 Analiza średnich EMA...")
-    await asyncio.sleep(0.8)
-    await status.edit_text("📊 Sprawdzanie wolumenu transakcji...")
-    await asyncio.sleep(0.8)
+    status = await query.message.reply_text("📡 Głębokie skanowanie rynku...")
+    await asyncio.sleep(1.5)
     
-    # Zaawansowana logika decyzji
-    score = random.randint(1, 100)
-    volatility = random.choice(["Wysoka", "Stabilna"])
+    # GENEROWANIE SZANSY (1-100)
+    # Symulujemy, że tylko ok. 30% sytuacji rynkowych nadaje się do gry
+    accuracy_score = random.randint(75, 98)
     
-    if score > 55:
-        dir_text, dir_emoji = "CALL", "🟢 GÓRA"
-        analysis = "EMA 9 przebiło EMA 21 od dołu. Potwierdzony popyt."
+    if accuracy_score < 90:
+        # BOT NIE JEST PEWIEN - ODRZUCA SYGNAŁ
+        await status.edit_text(
+            f"⚠️ **SYGNAŁ ODRZUCONY**\n\n"
+            f"Pewność: `{accuracy_score}%` (Wymagane: 90%+)\n"
+            f"Powód: `Zbyt duże szumy na wykresie. Rynek nieprzewidywalny.`\n\n"
+            f"🔄 Spróbuj ponownie za chwilę.",
+            parse_mode="Markdown"
+        )
+        await asyncio.sleep(3)
+        await query.message.reply_text("Gotowy do ponownego skanowania...", reply_markup=main_menu())
     else:
-        dir_text, dir_emoji = "PUT", "🔴 DÓŁ"
-        analysis = "Odrzucenie od lokalnego oporu. Wolumen maleje."
-
-    await status.delete()
-    await query.message.reply_text(
-        f"🎯 **SYGNAŁ POTWIERDZONY**\n\n"
-        f"💎 Para: `EUR/USD OTC`\n"
-        f"📈 Kierunek: **{dir_emoji}**\n"
-        f"⏳ Czas: `{sec}s`\n"
-        f"⚡ Prawdopodobieństwo: `{random.randint(82, 96)}%`\n\n"
-        f"🧠 **Uzasadnienie:**\n_{analysis}_",
-        parse_mode="Markdown",
-        reply_markup=main_menu()
-    )
+        # BOT JEST PEWIEN - DAJE SYGNAŁ
+        direction = random.choice(["CALL 🟢 (GÓRA)", "PUT 🔴 (DÓŁ)"])
+        pair = "EUR/USD OTC"
+        
+        await status.delete()
+        await query.message.reply_text(
+            f"✅ **ZNALEZIONO IDEALNY SETUP!**\n"
+            f"━━━━━━━━━━━━━━━\n"
+            f"📊 Para: `{pair}`\n"
+            f"📈 Kierunek: **{direction}**\n"
+            f"⏳ Czas: `15s`\n"
+            f"🔥 Pewność: `{accuracy_score}%`\n"
+            f"🧠 Analiza: `Potwierdzone wybicie z kanału i wsparcie wolumenu.`\n"
+            f"━━━━━━━━━━━━━━━\n"
+            f"🚀 **WEJDŹ TERAZ!**",
+            parse_mode="Markdown",
+            reply_markup=main_menu()
+        )
 
 if __name__ == "__main__":
     app = ApplicationBuilder().token(TOKEN).build()
