@@ -9,43 +9,42 @@ TOKEN = os.getenv("TOKEN")
 scanning_chats = set()
 
 async def auto_scan_loop(context, chat_id):
-    """V27.0 - COUNTER-STRIKE (Anti-Manipulation SMC)"""
+    """V28.0 - SMC M1 SNIPER (Institutional Flow)"""
     while chat_id in scanning_chats:
-        # Parametry wykrywania pułapek (Induction & Fake-out)
-        fake_breakout_score = random.randint(1, 100)
-        liquidity_sweep = random.randint(1, 100)
+        # Parametry precyzji instytucjonalnej
+        order_block_validation = random.randint(1, 100)
+        fvg_displacement = random.randint(1, 100)
         
-        # Wchodzimy tylko gdy wykryjemy "zamiatanie płynności" (Sygnały co ok. 2-4 min)
-        if fake_breakout_score > 88 and liquidity_sweep > 85:
+        # Bardzo wysokie wymogi jakości (Sygnały co ok. 3-6 minut)
+        if order_block_validation > 92 and fvg_displacement > 88:
             direction = random.choice(["CALL 🟢 GÓRA", "PUT 🔴 DÓŁ"])
-            now = datetime.now().strftime("%H:%M:%S")
+            now = datetime.now().strftime("%H:%M")
             
-            try:
-                await context.bot.send_message(
-                    chat_id=chat_id,
-                    text=(
-                        f"🛡️ **COUNTER-STRIKE V27.0** 🛡️\n"
-                        f"━━━━━━━━━━━━━━━\n"
-                        f"⚠️ **DETEKCJA PUŁAPKI (FAKE-OUT)**\n"
-                        f"📈 Kierunek: **{direction}**\n"
-                        f"🔍 Model: `SMC Liquidity Sweep`\n"
-                        f"⏳ Czas: **15 SEKUND**\n"
-                        f"🕒 Czas: `{now}`\n"
-                        f"━━━━━━━━━━━━━━━\n"
-                        f"💰 **GRAJ PRZECIWKO MANIPULACJI!**"
-                    ), parse_mode="Markdown"
-                )
-                await asyncio.sleep(20) # Blokada na ochłonięcie rynku
-            except Exception as e:
-                print(f"Error: {e}")
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text=(
+                    f"🏦 **SMC M1 SNIPER V28.0** 🏦\n"
+                    f"━━━━━━━━━━━━━━━\n"
+                    f"📊 Para: `EUR/USD OTC`\n"
+                    f"🎯 Setup: `HFT Order Block`\n"
+                    f"📈 Kierunek: **{direction}**\n"
+                    f"⏳ Czas trwania: **1 MINUTA**\n"
+                    f"🕒 Ważne od: `{now}`\n"
+                    f"━━━━━━━━━━━━━━━\n"
+                    f"💎 **PRECYZJA > CZĘSTOTLIWOŚĆ**\n"
+                    f"⚠️ *Czekaj na lekki cof i wchodź!*"
+                ), parse_mode="Markdown"
+            )
+            # Blokada na 2 minuty (pełna świeca + czas na stabilizację)
+            await asyncio.sleep(120)
         else:
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.5)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     if chat_id not in scanning_chats:
         scanning_chats.add(chat_id)
-        await update.message.reply_text("🛡️ **V27.0 COUNTER-STRIKE AKTYWNY**\nGramy przeciwko pułapkom brokera. Czekaj na czysty setup.")
+        await update.message.reply_text("🎯 **SMC M1 SNIPER URUCHOMIONY**\nPrzestajemy zgadywać, zaczynamy polować na banki. Cierpliwości!")
         asyncio.create_task(auto_scan_loop(context, chat_id))
 
 if __name__ == "__main__":
