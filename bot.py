@@ -68,7 +68,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 break
             await asyncio.sleep(0.2)
 
-        pair = random.choice(["AUD/CAD OTC", "EUR/USD OTC", "GBP/JPY OTC"])
+        pair = random.choice(["GBP/JPY OTC"])
         is_inversion = random.choice([True, False, False]) # 33% szans na inwersję
         
         if power > 50:
