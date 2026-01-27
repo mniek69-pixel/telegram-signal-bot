@@ -12,19 +12,19 @@ session = {"wins": 0, "losses": 0, "streak": 0, "locked_until": None}
 
 def main_keyboard():
     keyboard = [
-        [InlineKeyboardButton("⏱ 5s 🛡️", callback_data="gt_5"),
-         InlineKeyboardButton("⏱ 10s 🛡️", callback_data="gt_10")],
-        [InlineKeyboardButton("⏱ 15s 🛡️", callback_data="gt_15")],
-        [InlineKeyboardButton("📊 Stan Sesji", callback_data="st_stats")]
+        [InlineKeyboardButton("⏱ 5s ⚡", callback_data="sn_5"),
+         InlineKeyboardButton("⏱ 10s ⚡", callback_data="sn_10")],
+        [InlineKeyboardButton("⏱ 15s ⚡", callback_data="sn_15")],
+        [InlineKeyboardButton("📊 Statystyki Sesji", callback_data="st_stats")]
     ]
     return InlineKeyboardMarkup(keyboard)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    session["streak"] = 0 # Reset przy nowym starcie
     await update.message.reply_text(
-        "👻 **GHOST PROTOCOL V33.0** 👻\n"
-        "Tryb: `Anti-Algo Detection` 🕵️‍♂️\n\n"
-        "Bot wykrywa manipulacje po Twojej serii. Wybierz czas:",
+        "🎯 **GBP/JPY OTC SNIPER V33.2** 🎯\n"
+        "Para: `GBP/JPY OTC` (Stała)\n"
+        "Status: `High-Precision Mode` ⭐\n\n"
+        "Wybierz interwał wejścia:",
         reply_markup=main_keyboard()
     )
 
@@ -32,14 +32,12 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
-    # Sprawdzenie blokady sesji (ochrona przed tilt-em)
     if session["locked_until"] and datetime.now() < session["locked_until"]:
-        left = (session["locked_until"] - datetime.now()).seconds // 60
-        await query.message.reply_text(f"🛑 **BLOKADA OCHRONNA!**\nZbyt wiele przegranych. Odpocznij jeszcze {left} min.")
+        await query.message.reply_text("🛑 Blokada po stratach! Odpocznij chwilę.")
         return
 
     if query.data == "st_stats":
-        await query.message.reply_text(f"📈 Wynik: {session['wins']}W - {session['losses']}L\nPassa: {session['streak']}")
+        await query.message.reply_text(f"📈 GBP/JPY Wynik: {session['wins']}W - {session['losses']}L")
         return
 
     if query.data.startswith("res_"):
@@ -50,44 +48,44 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             session["losses"] += 1
             session["streak"] = min(0, session["streak"] - 1)
         
-        # Jeśli 3 przegrane pod rząd - blokada 15 min
         if session["streak"] <= -3:
-            session["locked_until"] = datetime.now() + asyncio.timedelta(minutes=15)
-            await query.message.reply_text("⛔ **WYKRYTO SERIĘ PRZEGRANYCH.**\nAlgorytm brokera Cię namierzył. Blokuję sygnały na 15 minut dla Twojego bezpieczeństwa.")
+            session["locked_until"] = datetime.now() + asyncio.timedelta(minutes=10)
+            await query.message.reply_text("⛔ **WYKRYTO MANIPULACJĘ NA GBP/JPY.**\nBlokada 10 min. Algorytm Pocket Option musi się zresetować.")
         else:
-            await query.message.reply_text("Zapisano. Szukam bezpiecznej luki...", reply_markup=main_keyboard())
+            await query.message.reply_text("Zapisano. Szukam kolejnego wejścia...", reply_markup=main_keyboard())
         return
 
-    if query.data.startswith("gt_"):
+    if query.data.startswith("sn_"):
         sec = query.data.split("_")[1]
-        msg = await query.message.reply_text("🔄 Mycie śladów sesji (Ghost Mode)...")
-        await asyncio.sleep(random.uniform(0.5, 1.5))
+        msg = await query.message.reply_text("📡 Skanowanie struktury GBP/JPY...")
         
-        # Filtr siły sygnału (Tylko 4-5 gwiazdek)
+        # Filtr precyzji 4-5 gwiazdek (Power > 85 lub Power < 15)
         power = random.randint(1, 100)
-        while power < 85 and power > 15:
+        while 15 < power < 85:
             power = random.randint(1, 100)
             await asyncio.sleep(0.1)
 
         direction = "CALL ⬆️" if power > 50 else "PUT ⬇️"
         emoji = "🟢" if power > 50 else "🔴"
+        stars = "⭐⭐⭐⭐⭐" if (power > 93 or power < 7) else "⭐⭐⭐⭐"
         
         await msg.delete()
-        # Przyciski wyniku pod sygnałem
         res_kb = InlineKeyboardMarkup([[
             InlineKeyboardButton("✅ WYGRANA", callback_data="res_win"),
             InlineKeyboardButton("❌ PRZEGRANA", callback_data="res_loss")
         ]])
         
         await query.message.reply_text(
-            f"{emoji} **SZYBKI STRZAŁ GHOST** {emoji}\n"
+            f"{emoji} **SYGNAŁ GBP/JPY OTC** {emoji}\n"
             f"━━━━━━━━━━━━━━━\n"
             f"📈 Kierunek: **{direction}**\n"
             f"⏳ Czas: `{sec} SEC`\n"
-            f"🛡️ Pewność: `ELITARNA (85%+)`\n"
+            f"💪 Moc: {stars}\n"
+            f"🎯 Strategia: `SMC Gap Reversal`\n"
             f"━━━━━━━━━━━━━━━\n"
-            f"⚡ **KLIKNIJ I ZNIKAJ!**",
-            reply_markup=res_kb
+            f"⚡ **KLIKAJ TERAZ!**",
+            reply_markup=res_kb,
+            parse_mode="Markdown"
         )
 
 if __name__ == "__main__":
