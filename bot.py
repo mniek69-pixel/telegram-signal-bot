@@ -2,79 +2,58 @@ import os
 import random
 import asyncio
 from datetime import datetime
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, CallbackQueryHandler
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
 TOKEN = os.getenv("TOKEN")
-scanning_chats = {}
+scanning_chats = set()
 
 async def auto_scan_loop(context, chat_id):
+    """V25.0 - DIRECT IMPACT (No Lag Mode)"""
     while chat_id in scanning_chats:
-        s = scanning_chats[chat_id]
+        # Maksymalnie uproszczona logika - reaguje na 55% zmienności
+        volatility_hit = random.randint(1, 100)
         
-        # Ekstremalnie czuła logika wykrywania płynności
-        liquidity_flow = random.uniform(50, 100) 
-        
-        # Próg wejścia obniżony do minimum (55%), aby sygnały leciały ciągle
-        if liquidity_flow > s["smc_precision"]:
+        # Bardzo niski próg (60) = sygnały co chwilę
+        if volatility_hit > 60:
             direction = random.choice(["CALL 🟢 GÓRA", "PUT 🔴 DÓŁ"])
-            logic = random.choice(["SMC Gap Strike", "Instant Liquidity", "Micro-Trend"])
-            
-            keyboard = [[
-                InlineKeyboardButton("Zysk ✅", callback_query_data='win'),
-                InlineKeyboardButton("Strata ❌", callback_query_data='loss')
-            ]]
+            now = datetime.now().strftime("%H:%M:%S")
             
             try:
                 await context.bot.send_message(
                     chat_id=chat_id,
                     text=(
-                        f"🚨 **SMC ZERO-LAG V24.3** 🚨\n"
+                        f"🚀 **DIRECT IMPACT V25.0**\n"
                         f"━━━━━━━━━━━━━━━\n"
                         f"📈 Kierunek: **{direction}**\n"
-                        f"🎯 Model: `{logic}`\n"
-                        f"⚡ Szybkość: `ULTRA` (Próg: {s['smc_precision']}%)\n"
                         f"⏳ Czas: **15 SEKUND**\n"
+                        f"🕒 Godzina: `{now}`\n"
                         f"━━━━━━━━━━━━━━━\n"
-                        f"💰 **DAWAJ! KLIKAJ TERAZ!**"
-                    ),
-                    reply_markup=InlineKeyboardMarkup(keyboard),
-                    parse_mode="Markdown"
+                        f"⚡ **WCHODŹ TERAZ!**"
+                    ), parse_mode="Markdown"
                 )
-                # Blokada tylko 10s, żebyś mógł łapać sygnał za sygnałem
-                await asyncio.sleep(10) 
+                # Krótka blokada 15s (czas trwania trade'u)
+                await asyncio.sleep(15)
             except Exception as e:
-                print(f"Błąd wysyłki: {e}")
-        
-        await asyncio.sleep(0.1)
-
-async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    chat_id = query.message.chat_id
-    await query.answer()
-    
-    if chat_id not in scanning_chats: return
-
-    if query.data == 'win':
-        # Przy zysku jeszcze bardziej przyspieszamy
-        scanning_chats[chat_id]["smc_precision"] = max(40.0, scanning_chats[chat_id]["smc_precision"] - 5.0)
-        res = "🔥 Lecimy dalej! Kolejny sygnał zaraz..."
-    else:
-        # Przy stracie tylko delikatnie korygujemy
-        scanning_chats[chat_id]["smc_precision"] = min(75.0, scanning_chats[chat_id]["smc_precision"] + 2.0)
-        res = "❌ Spokojnie, odrobimy to przy następnym."
-
-    await query.edit_message_text(text=query.message.text + f"\n\n{res}")
+                print(f"Błąd: {e}")
+        else:
+            # Skanowanie co pół sekundy
+            await asyncio.sleep(0.5)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
-    # Startujemy z ekstremalnie niskiego progu 55%
-    scanning_chats[chat_id] = {"smc_precision": 55.0} 
-    await update.message.reply_text("🚀 **ZERO-LAG AKTYWNY**\nSygnały będą teraz wpadać bardzo często. Bądź gotowy!")
-    asyncio.create_task(auto_scan_loop(context, chat_id))
+    if chat_id not in scanning_chats:
+        scanning_chats.add(chat_id)
+        await update.message.reply_text("🔥 **V25.0 READY!**\nSygnały będą teraz wpadać błyskawicznie. Przygotuj platformę!")
+        asyncio.create_task(auto_scan_loop(context, chat_id))
+
+async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+    if chat_id in scanning_chats:
+        scanning_chats.remove(chat_id)
+        await update.message.reply_text("🛑 Zatrzymano.")
 
 if __name__ == "__main__":
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(button_handler))
     app.run_polling()
