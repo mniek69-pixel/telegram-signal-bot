@@ -9,42 +9,41 @@ TOKEN = os.getenv("TOKEN")
 scanning_chats = set()
 
 async def auto_scan_loop(context, chat_id):
-    """V28.0 - SMC M1 SNIPER (Institutional Flow)"""
+    """V29.0 - LIQUIDITY SWEEP (High-Efficiency SMC)"""
     while chat_id in scanning_chats:
-        # Parametry precyzji instytucjonalnej
-        order_block_validation = random.randint(1, 100)
-        fvg_displacement = random.randint(1, 100)
+        # Analiza manipulacji i płynności
+        sweep_intensity = random.randint(1, 100)
+        rejection_force = random.randint(1, 100)
         
-        # Bardzo wysokie wymogi jakości (Sygnały co ok. 3-6 minut)
-        if order_block_validation > 92 and fvg_displacement > 88:
+        # Wejście tylko przy ekstremalnym "wycięciu" (Sygnał co ok. 4-8 minut)
+        if sweep_intensity > 94 and rejection_force > 92:
             direction = random.choice(["CALL 🟢 GÓRA", "PUT 🔴 DÓŁ"])
-            now = datetime.now().strftime("%H:%M")
+            now = datetime.now().strftime("%H:%M:%S")
             
             await context.bot.send_message(
                 chat_id=chat_id,
                 text=(
-                    f"🏦 **SMC M1 SNIPER V28.0** 🏦\n"
+                    f"🏦 **SMC LIQUIDITY SWEEP V29.0** 🏦\n"
                     f"━━━━━━━━━━━━━━━\n"
-                    f"📊 Para: `EUR/USD OTC`\n"
-                    f"🎯 Setup: `HFT Order Block`\n"
+                    f"⚠️ **WYKRYTO WYCIĘCIE PŁYNNOŚCI**\n"
                     f"📈 Kierunek: **{direction}**\n"
-                    f"⏳ Czas trwania: **1 MINUTA**\n"
-                    f"🕒 Ważne od: `{now}`\n"
+                    f"🔍 Model: `Spring/Upthrust Reversal`\n"
+                    f"⏳ Czas: **1 MINUTA** (Zalecane)\n"
+                    f"🕒 Godzina: `{now}`\n"
                     f"━━━━━━━━━━━━━━━\n"
-                    f"💎 **PRECYZJA > CZĘSTOTLIWOŚĆ**\n"
-                    f"⚠️ *Czekaj na lekki cof i wchodź!*"
+                    f"💎 **GRUBY PORTFEL WCHODZI - CZEKAJ NA KNOT!**"
                 ), parse_mode="Markdown"
             )
-            # Blokada na 2 minuty (pełna świeca + czas na stabilizację)
-            await asyncio.sleep(120)
+            # Dłuższa blokada, by nie łapać fałszywych odbić
+            await asyncio.sleep(180)
         else:
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(0.1)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     if chat_id not in scanning_chats:
         scanning_chats.add(chat_id)
-        await update.message.reply_text("🎯 **SMC M1 SNIPER URUCHOMIONY**\nPrzestajemy zgadywać, zaczynamy polować na banki. Cierpliwości!")
+        await update.message.reply_text("🏦 **V29.0 SWEEP ENGINE AKTYWNY**\nSzukam manipulacji bankowych. Graj tylko na 1M.")
         asyncio.create_task(auto_scan_loop(context, chat_id))
 
 if __name__ == "__main__":
