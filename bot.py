@@ -38,4 +38,24 @@ async def auto_scan_loop(context, chat_id):
             )
             await asyncio.sleep(22) # Odpoczynek dla algorytmu
         else:
-            # Skanowanie co 0.2s - naj
+            # Skanowanie co 0.2s - najszybszy czas reakcji
+            await asyncio.sleep(0.2)
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+    if chat_id not in scanning_chats:
+        scanning_chats.add(chat_id)
+        await update.message.reply_text("🇬🇧 **GBP/USD OTC SNIPER V14.2 AKTYWNY**\nSkanuję algorytm brokera pod kątem luk cenowych...")
+        asyncio.create_task(auto_scan_loop(context, chat_id))
+
+async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+    if chat_id in scanning_chats:
+        scanning_chats.remove(chat_id)
+        await update.message.reply_text("🛑 Skaner OTC zatrzymany.")
+
+if __name__ == "__main__":
+    app = ApplicationBuilder().token(TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("stop", stop))
+    app.run_polling()
