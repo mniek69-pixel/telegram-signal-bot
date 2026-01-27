@@ -1,52 +1,64 @@
 import os
 import random
 import asyncio
-from datetime import datetime
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 
+# Pobieranie tokena z Railway
 TOKEN = os.getenv("TOKEN")
-scanning_chats = set()
 
-async def auto_scan_loop(context, chat_id):
-    """V29.0 - LIQUIDITY SWEEP (High-Efficiency SMC)"""
-    while chat_id in scanning_chats:
-        # Analiza manipulacji i płynności
-        sweep_intensity = random.randint(1, 100)
-        rejection_force = random.randint(1, 100)
-        
-        # Wejście tylko przy ekstremalnym "wycięciu" (Sygnał co ok. 4-8 minut)
-        if sweep_intensity > 94 and rejection_force > 92:
-            direction = random.choice(["CALL 🟢 GÓRA", "PUT 🔴 DÓŁ"])
-            now = datetime.now().strftime("%H:%M:%S")
-            
-            await context.bot.send_message(
-                chat_id=chat_id,
-                text=(
-                    f"🏦 **SMC LIQUIDITY SWEEP V29.0** 🏦\n"
-                    f"━━━━━━━━━━━━━━━\n"
-                    f"⚠️ **WYKRYTO WYCIĘCIE PŁYNNOŚCI**\n"
-                    f"📈 Kierunek: **{direction}**\n"
-                    f"🔍 Model: `Spring/Upthrust Reversal`\n"
-                    f"⏳ Czas: **1 MINUTA** (Zalecane)\n"
-                    f"🕒 Godzina: `{now}`\n"
-                    f"━━━━━━━━━━━━━━━\n"
-                    f"💎 **GRUBY PORTFEL WCHODZI - CZEKAJ NA KNOT!**"
-                ), parse_mode="Markdown"
-            )
-            # Dłuższa blokada, by nie łapać fałszywych odbić
-            await asyncio.sleep(180)
-        else:
-            await asyncio.sleep(0.1)
+# Funkcja tworząca przyciski
+def time_keyboard():
+    keyboard = [[
+        InlineKeyboardButton("⏱ 5s", callback_data="time_5"),
+        InlineKeyboardButton("⏱ 8s", callback_data="time_8"),
+        InlineKeyboardButton("⏱ 15s", callback_data="time_15"),
+    ]]
+    return InlineKeyboardMarkup(keyboard)
 
+# Komenda /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_chat.id
-    if chat_id not in scanning_chats:
-        scanning_chats.add(chat_id)
-        await update.message.reply_text("🏦 **V29.0 SWEEP ENGINE AKTYWNY**\nSzukam manipulacji bankowych. Graj tylko na 1M.")
-        asyncio.create_task(auto_scan_loop(context, chat_id))
+    await update.message.reply_text(
+        "🚀 Bot Sygnałowy gotowy!\nWybierz czas wejścia:",
+        reply_markup=time_keyboard()
+    )
 
+# Obsługa kliknięć w przyciski
+async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    
+    seconds = int(query.data.split("_")[1])
+    await query.edit_message_text(f"⏳ Analiza rynku... Sygnał za {seconds}s")
+    
+    # Odliczanie
+    await asyncio.sleep(seconds)
+
+    # Losowy sygnał (później tu dodamy Twoją strategię)
+    signal = random.choice(["CALL 🟢 (GÓRA)", "PUT 🔴 (DÓŁ)"])
+    pair = random.choice(["EUR/USD OTC", "GBP/JPY OTC", "AUD/CAD OTC"])
+
+    await query.message.reply_text(
+        f"🚨 **NOWY SYGNAŁ** 🚨\n\n"
+        f"📊 Para: **{pair}**\n"
+        f"📈 Kierunek: **{signal}**\n"
+        f"⏱ Czas: **{seconds}s**\n"
+        f"🔥 Wejdź TERAZ!",
+        parse_mode="Markdown"
+    )
+    # Ponowne wysłanie menu po sygnale
+    await query.message.reply_text("Wybierz czas na kolejny sygnał:", reply_markup=time_keyboard())
+
+# Uruchomienie bota
 if __name__ == "__main__":
-    app = ApplicationBuilder().token(TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.run_polling()
+    if not TOKEN:
+        print("BŁĄD: Nie znaleziono TOKENA w zmiennych Railway!")
+    else:
+        print("Bot startuje...")
+        app = ApplicationBuilder().token(TOKEN).build()
+        
+        app.add_handler(CommandHandler("start", start))
+        app.add_handler(CallbackQueryHandler(button_handler))
+        
+        # Kluczowe: drop_pending_updates sprawia, że bot nie wariuje po restarcie
+        app.run_polling(drop_pending_updates=True)
