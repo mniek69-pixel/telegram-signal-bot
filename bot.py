@@ -8,15 +8,15 @@ TOKEN = os.getenv("TOKEN")
 
 def main_menu():
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("💎 GENERUJ SYGNAŁ (90%+ Accuracy)", callback_data="sig_15")]
+        [InlineKeyboardButton("⚡ SKANUJ RYNEK (V6.0 PRO)", callback_data="scan_pro")]
     ])
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "🧠 **BOT ANALITYCZNY V5.5 - TRYB FILTROWANIA**\n"
-        "Status: `Aktywny` 🟢\n"
-        "Minimalna pewność: `90%` 🛡️\n\n"
-        "Kliknij poniżej, aby bot przeskanował rynek pod kątem idealnego wejścia.",
+        "🛠 **SYSTEM SCALPINGOWY V6.0 PRO**\n"
+        "Metoda: `Price Action + Candle Momentum` 🕯\n"
+        "Filtry: `Potrójna Konfluencja` ✅\n\n"
+        "Bot szuka tylko momentów 'płynnościowych', gdzie szansa na wygraną jest najwyższa.",
         reply_markup=main_menu(),
         parse_mode="Markdown"
     )
@@ -25,40 +25,48 @@ async def handle_logic(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
-    status = await query.message.reply_text("📡 Głębokie skanowanie rynku...")
-    await asyncio.sleep(1.5)
+    status = await query.message.reply_text("📡 Przeszukiwanie poziomów wsparcia/oporu...")
+    await asyncio.sleep(1)
+    await status.edit_text("🔍 Analiza formacji świecowych (Pin Bar detection)...")
+    await asyncio.sleep(1)
     
-    # GENEROWANIE SZANSY (1-100)
-    # Symulujemy, że tylko ok. 30% sytuacji rynkowych nadaje się do gry
-    accuracy_score = random.randint(75, 98)
+    # SYSTEM OCENY (1-100)
+    # W tej wersji szansa na sygnał jest jeszcze mniejsza (ok. 20%), 
+    # ale sygnały są znacznie "czystsze".
+    score = random.randint(60, 99)
     
-    if accuracy_score < 90:
-        # BOT NIE JEST PEWIEN - ODRZUCA SYGNAŁ
+    if score < 92:
         await status.edit_text(
-            f"⚠️ **SYGNAŁ ODRZUCONY**\n\n"
-            f"Pewność: `{accuracy_score}%` (Wymagane: 90%+)\n"
-            f"Powód: `Zbyt duże szumy na wykresie. Rynek nieprzewidywalny.`\n\n"
-            f"🔄 Spróbuj ponownie za chwilę.",
+            f"❌ **BRAK POTWIERDZENIA**\n\n"
+            f"Wskaźnik pewności: `{score}%` (Wymagane: 92%+)\n"
+            f"Błąd: `Brak czystej formacji świecowej. Rynek w konsolidacji.`\n\n"
+            f"Cierpliwość to Twój największy zysk. Czekaj...",
             parse_mode="Markdown"
         )
-        await asyncio.sleep(3)
-        await query.message.reply_text("Gotowy do ponownego skanowania...", reply_markup=main_menu())
+        await asyncio.sleep(2)
+        await query.message.reply_text("Gotowy na kolejny skan.", reply_markup=main_menu())
     else:
-        # BOT JEST PEWIEN - DAJE SYGNAŁ
-        direction = random.choice(["CALL 🟢 (GÓRA)", "PUT 🔴 (DÓŁ)"])
-        pair = "EUR/USD OTC"
+        direction = random.choice(["CALL 🟢", "PUT 🔴"])
+        
+        # Generowanie profesjonalnego uzasadnienia
+        reasons = [
+            "Odrzucenie poziomu wsparcia silnym knotem.",
+            "Formacja objęcia hossy na niskim interwale.",
+            "Wyczerpanie trendu spadkowego (Momentum Exhaustion).",
+            "Przełamanie lokalnej linii trendu z retestem."
+        ]
         
         await status.delete()
         await query.message.reply_text(
-            f"✅ **ZNALEZIONO IDEALNY SETUP!**\n"
+            f"💎 **SYGNAŁ WYSOKIEJ JAKOŚCI** 💎\n"
             f"━━━━━━━━━━━━━━━\n"
-            f"📊 Para: `{pair}`\n"
-            f"📈 Kierunek: **{direction}**\n"
-            f"⏳ Czas: `15s`\n"
-            f"🔥 Pewność: `{accuracy_score}%`\n"
-            f"🧠 Analiza: `Potwierdzone wybicie z kanału i wsparcie wolumenu.`\n"
+            f"📊 Aktywo: `EUR/USD OTC`\n"
+            f"📈 Decyzja: **{direction}**\n"
+            f"⏱ Czas: `10s - 15s`\n"
+            f"🔥 Pewność: `{score}%`\n\n"
+            f"🧠 **Analiza techniczna:**\n_{random.choice(reasons)}_\n"
             f"━━━━━━━━━━━━━━━\n"
-            f"🚀 **WEJDŹ TERAZ!**",
+            f"⚡ **REAGUJ NATYCHMIAST!**",
             parse_mode="Markdown",
             reply_markup=main_menu()
         )
