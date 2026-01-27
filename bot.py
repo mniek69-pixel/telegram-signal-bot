@@ -7,91 +7,87 @@ from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandle
 
 TOKEN = os.getenv("TOKEN")
 
-# Statystyki sesji
-session_data = {"wins": 0, "losses": 0}
+# System zarządzania sesją
+session = {"wins": 0, "losses": 0, "streak": 0, "locked_until": None}
 
 def main_keyboard():
     keyboard = [
-        [InlineKeyboardButton("⏱ 5 SEC 🟢", callback_data="t_5"),
-         InlineKeyboardButton("⏱ 8 SEC 🟡", callback_data="t_8")],
-        [InlineKeyboardButton("⏱ 12 SEC 🔴", callback_data="t_12"),
-         InlineKeyboardButton("⏱ 15 SEC 🟣", callback_data="t_15")],
-        [InlineKeyboardButton("🏠 Menu Główne", callback_data="main_menu")]
+        [InlineKeyboardButton("⏱ 5s 🛡️", callback_data="gt_5"),
+         InlineKeyboardButton("⏱ 10s 🛡️", callback_data="gt_10")],
+        [InlineKeyboardButton("⏱ 15s 🛡️", callback_data="gt_15")],
+        [InlineKeyboardButton("📊 Stan Sesji", callback_data="st_stats")]
     ]
     return InlineKeyboardMarkup(keyboard)
 
-def result_keyboard():
-    keyboard = [[
-        InlineKeyboardButton("✅ ITM (WIN)", callback_data="res_win"),
-        InlineKeyboardButton("❌ OTM (LOSS)", callback_data="res_loss")
-    ]]
-    return InlineKeyboardMarkup(keyboard)
-
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    session["streak"] = 0 # Reset przy nowym starcie
     await update.message.reply_text(
-        "🐻 **POCKET MASTER ELITE V32** 🐻\n"
-        "Status: `LIVE SCANNING` 🟢\n"
-        "Rynek: `AUD/CAD OTC` (lub inne)\n\n"
-        "Wybierz czas wejścia (Sygnały 4-5⭐):",
-        reply_markup=main_keyboard(),
-        parse_mode="Markdown"
+        "👻 **GHOST PROTOCOL V33.0** 👻\n"
+        "Tryb: `Anti-Algo Detection` 🕵️‍♂️\n\n"
+        "Bot wykrywa manipulacje po Twojej serii. Wybierz czas:",
+        reply_markup=main_keyboard()
     )
 
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    data = query.data
     await query.answer()
 
-    if data == "main_menu":
-        await query.message.edit_text("Wybierz interwał:", reply_markup=main_keyboard())
+    # Sprawdzenie blokady sesji (ochrona przed tilt-em)
+    if session["locked_until"] and datetime.now() < session["locked_until"]:
+        left = (session["locked_until"] - datetime.now()).seconds // 60
+        await query.message.reply_text(f"🛑 **BLOKADA OCHRONNA!**\nZbyt wiele przegranych. Odpocznij jeszcze {left} min.")
         return
 
-    if data.startswith("res_"):
-        if "win" in data: session_data["wins"] += 1
-        else: session_data["losses"] += 1
-        winrate = (session_data["wins"] / (session_data["wins"] + session_data["losses"])) * 100
-        await query.message.reply_text(
-            f"📊 **Statystyki: {session_data['wins']}W - {session_data['losses']}L**\n"
-            f"🎯 Winrate: `{winrate:.1f}%`", 
-            reply_markup=main_keyboard()
-        )
+    if query.data == "st_stats":
+        await query.message.reply_text(f"📈 Wynik: {session['wins']}W - {session['losses']}L\nPassa: {session['streak']}")
         return
 
-    if data.startswith("t_"):
-        seconds = data.split("_")[1]
-        msg = await query.message.reply_text("📡 **ANALIZOWANIE PŁYNNOŚCI...**")
-        
-        # Szukamy tylko sygnału 4-5 gwiazdek
-        while True:
-            power = random.randint(1, 100)
-            if power > 80 or power < 20: # Filtr 4-5 gwiazdek
-                break
-            await asyncio.sleep(0.2)
-
-        pair = random.choice(["GBP/JPY OTC"])
-        is_inversion = random.choice([True, False, False]) # 33% szans na inwersję
-        
-        if power > 50:
-            direction = "CALL ⬆️" if not is_inversion else "PUT ⬇️ (INWERSJA)"
-            emoji = "🟢" if not is_inversion else "🟠"
+    if query.data.startswith("res_"):
+        if "win" in query.data:
+            session["wins"] += 1
+            session["streak"] = max(0, session["streak"] + 1)
         else:
-            direction = "PUT ⬇️" if not is_inversion else "CALL ⬆️ (INWERSJA)"
-            emoji = "🔴" if not is_inversion else "🔵"
+            session["losses"] += 1
+            session["streak"] = min(0, session["streak"] - 1)
+        
+        # Jeśli 3 przegrane pod rząd - blokada 15 min
+        if session["streak"] <= -3:
+            session["locked_until"] = datetime.now() + asyncio.timedelta(minutes=15)
+            await query.message.reply_text("⛔ **WYKRYTO SERIĘ PRZEGRANYCH.**\nAlgorytm brokera Cię namierzył. Blokuję sygnały na 15 minut dla Twojego bezpieczeństwa.")
+        else:
+            await query.message.reply_text("Zapisano. Szukam bezpiecznej luki...", reply_markup=main_keyboard())
+        return
 
-        stars = "⭐⭐⭐⭐⭐" if (power > 92 or power < 8) else "⭐⭐⭐⭐"
+    if query.data.startswith("gt_"):
+        sec = query.data.split("_")[1]
+        msg = await query.message.reply_text("🔄 Mycie śladów sesji (Ghost Mode)...")
+        await asyncio.sleep(random.uniform(0.5, 1.5))
+        
+        # Filtr siły sygnału (Tylko 4-5 gwiazdek)
+        power = random.randint(1, 100)
+        while power < 85 and power > 15:
+            power = random.randint(1, 100)
+            await asyncio.sleep(0.1)
+
+        direction = "CALL ⬆️" if power > 50 else "PUT ⬇️"
+        emoji = "🟢" if power > 50 else "🔴"
         
         await msg.delete()
+        # Przyciski wyniku pod sygnałem
+        res_kb = InlineKeyboardMarkup([[
+            InlineKeyboardButton("✅ WYGRANA", callback_data="res_win"),
+            InlineKeyboardButton("❌ PRZEGRANA", callback_data="res_loss")
+        ]])
+        
         await query.message.reply_text(
-            f"{emoji} **SYGNAŁ POTWIERDZONY** {emoji}\n"
+            f"{emoji} **SZYBKI STRZAŁ GHOST** {emoji}\n"
             f"━━━━━━━━━━━━━━━\n"
-            f"💹 Para: `{pair}`\n"
             f"📈 Kierunek: **{direction}**\n"
-            f"⏳ Czas: `{seconds} SEC`\n"
-            f"💪 Pewność: {stars}\n"
+            f"⏳ Czas: `{sec} SEC`\n"
+            f"🛡️ Pewność: `ELITARNA (85%+)`\n"
             f"━━━━━━━━━━━━━━━\n"
-            f"🔥 **WCHODŹ TERAZ NA POCKET OPTION!**",
-            reply_markup=result_keyboard(),
-            parse_mode="Markdown"
+            f"⚡ **KLIKNIJ I ZNIKAJ!**",
+            reply_markup=res_kb
         )
 
 if __name__ == "__main__":
