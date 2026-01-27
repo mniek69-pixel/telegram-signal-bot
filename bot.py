@@ -68,7 +68,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         # Zaawansowana symulacja logiczna
         power = random.randint(1, 100)
-        pair = random.choice(["EUR/USD OTC", "GBP/JPY OTC", "AUD/CAD OTC", "USD/CHF OTC"])
+        pair = random.choice(["EUR/USD OTC"])
         
         if power > 50:
             direction = "CALL 🟢 (GÓRA)"
