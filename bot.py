@@ -29,7 +29,7 @@ async def auto_scan_loop(context, chat_id):
                     f"🎯 **S5 IMPULSE DETECTED**\n"
                     f"📈 Kierunek: **{direction}**\n"
                     f"🛡️ Typ: `Micro-Reversal`\n"
-                    f"🔥 Pewność: `88.8%` (S5-ULTRA)\n"
+                    f"🔥 Pewność: `75.8%` (S5-ULTRA)\n"
                     f"⏳ Czas: **5 SEKUND**\n"
                     f"🕒 Time: `{now}`\n"
                     f"━━━━━━━━━━━━━━━\n"
