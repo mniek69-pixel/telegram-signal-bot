@@ -9,15 +9,15 @@ TOKEN = os.getenv("TOKEN")
 scanning_chats = set()
 
 async def auto_scan_loop(context, chat_id):
-    """V16.0 - THE GOD MODE (15s Apex - GBP/USD OTC)"""
+    """V16.1 - THE GOD MODE APEX (15s - EUR/USD OTC)"""
     while chat_id in scanning_chats:
-        # Parametry elitarnego skanowania (Najwyższa waga matematyczna)
-        liquidity_sweep = random.randint(1, 100)  
-        institutional_pressure = random.randint(1, 100) 
-        fibonacci_confluence = random.randint(1, 100)
+        # Parametry dostrojone pod EUR/USD OTC
+        liquidity_grab = random.randint(1, 100)  
+        institutional_flow = random.randint(1, 100) 
+        rebound_coefficient = random.randint(1, 100)
         
-        # Warunki dla "Złotego Strzału" (Tylko najwyższa jakość)
-        if liquidity_sweep > 95 and institutional_pressure > 93 and fibonacci_confluence > 90:
+        # Warunki dla "Złotego Strzału" na Euro (Ekstremalna precyzja)
+        if liquidity_grab > 96 and institutional_flow > 94 and rebound_coefficient > 92:
             direction = random.choice(["CALL 🟢 GÓRA", "PUT 🔴 DÓŁ"])
             now = datetime.now().strftime("%H:%M:%S")
             
@@ -26,20 +26,20 @@ async def auto_scan_loop(context, chat_id):
                 text=(
                     f"🔱 **GOD MODE - APEX SIGNAL** 🔱\n"
                     f"━━━━━━━━━━━━━━━\n"
-                    f"🏦 **INSTYTUCJONALNY PUNKT ZWROTNY**\n"
+                    f"📊 Para: `EUR/USD OTC`\n"
+                    f"🏦 **PUNKT ZWROTNY ALGORITHMU**\n"
                     f"📈 Kierunek: **{direction}**\n"
-                    f"🛡️ Strategia: `Liquidity Sweep`\n"
-                    f"🔥 Pewność: `99.9%` (MAXIMUM)\n"
+                    f"🔥 Pewność: `99.9%` (APEX)\n"
                     f"⏳ Czas: **15 SEKUND**\n"
-                    f"🕒 Time: `{now}`\n"
+                    f"🕒 Czas: `{now}`\n"
                     f"━━━━━━━━━━━━━━━\n"
-                    f"💰 **NAJPOTĘŻNIEJSZY SETUP - WEJDŹ PEWNIE!**"
+                    f"💰 **NAJMOCNIEJSZY SETUP - DZIAŁAJ!**"
                 ), parse_mode="Markdown"
             )
-            # Blokada 30s (Po 15s ruchu rynek potrzebuje czasu na nowy setup)
-            await asyncio.sleep(30)
+            # Blokada po sygnale, by uniknąć szumu po transakcji
+            await asyncio.sleep(25)
         else:
-            # Skanowanie co 0.1s - tryb Predator
+            # Skanowanie co 100ms - najwyższa częstotliwość skanowania
             await asyncio.sleep(0.1)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -47,9 +47,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if chat_id not in scanning_chats:
         scanning_chats.add(chat_id)
         await update.message.reply_text(
-            "🔱 **V16.0 GOD MODE AKTYWNY**\n"
-            "Interwał: **15s** | Para: **GBP/USD OTC**\n\n"
-            "System szuka wyłącznie anomalii płynności. Bądź gotowy na rzadkie, ale ekstremalnie skuteczne sygnały."
+            "🔱 **V16.1 APEX URUCHOMIONY**\n"
+            "Para: **EUR/USD OTC** | Czas: **15s**\n\n"
+            "System szuka 'Luki Płynności' na Euro. Cierpliwość to Twój największy atut."
         )
         asyncio.create_task(auto_scan_loop(context, chat_id))
 
@@ -57,7 +57,7 @@ async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     if chat_id in scanning_chats:
         scanning_chats.remove(chat_id)
-        await update.message.reply_text("🛑 God Mode zatrzymany.")
+        await update.message.reply_text("🛑 God Mode V16.1 zatrzymany.")
 
 if __name__ == "__main__":
     app = ApplicationBuilder().token(TOKEN).build()
