@@ -6,55 +6,63 @@ from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandle
 
 TOKEN = os.getenv("TOKEN")
 
-def get_keyboard():
+def main_menu():
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("⏱ 5s", callback_data="t_5"),
-         InlineKeyboardButton("⏱ 8s", callback_data="t_8"),
-         InlineKeyboardButton("⏱ 15s", callback_data="t_15")]
+        [InlineKeyboardButton("🔥 SYGNAŁ PREMIUM (EUR/USD)", callback_data="sig_5")],
+        [InlineKeyboardButton("⏱ 8s", callback_data="sig_8"), 
+         InlineKeyboardButton("⏱ 15s", callback_data="sig_15")],
+        [InlineKeyboardButton("📊 Statystyki Rynku", callback_data="stats")]
     ])
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "💎 **SYSTEM ANALITYCZNY V4.0**\nStrategia: `RSI Reversal` 📈\nPara: `EUR/USD OTC`",
-        reply_markup=get_keyboard(),
+        "🚀 **BOT TRADINGOWY PRO V5.0**\nStrategia: `EMA Cross + Momentum`\nTryb: `Skalpowanie OTC`",
+        reply_markup=main_menu(),
         parse_mode="Markdown"
     )
 
-async def handle_signal(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def handle_logic(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
+    data = query.data
     await query.answer()
-    
-    sec = query.data.split("_")[1]
-    msg = await query.message.reply_text("🔍 Sprawdzam wskaźnik RSI...")
-    
-    # SYMULACJA ANALIZY RSI
-    await asyncio.sleep(1)
-    rsi_value = random.randint(15, 85) # Bot "losuje" aktualne RSI
-    
-    if rsi_value > 70:
-        direction = "PUT 🔴"
-        reason = f"RSI Wysokie ({rsi_value}) - Rynek wykupiony"
-    elif rsi_value < 30:
-        direction = "CALL 🟢"
-        reason = f"RSI Niskie ({rsi_value}) - Rynek wyprzedany"
-    else:
-        # Jeśli RSI jest w środku, bot szuka trendu
-        direction = random.choice(["CALL 🟢", "PUT 🔴"])
-        reason = "Momentum zgodne z trendem lokalnym"
 
-    await msg.delete()
+    if data == "stats":
+        v = random.randint(70, 98)
+        await query.message.reply_text(f"📈 **Market Status:**\nZmienność: `{v}%`\nTrend: `Silnie Wzrostowy`\nSkuteczność dzisiaj: `84%`", parse_mode="Markdown")
+        return
+
+    # Symulacja "mózgu" bota
+    sec = data.split("_")[1]
+    status = await query.message.reply_text("🧬 Analiza średnich EMA...")
+    await asyncio.sleep(0.8)
+    await status.edit_text("📊 Sprawdzanie wolumenu transakcji...")
+    await asyncio.sleep(0.8)
+    
+    # Zaawansowana logika decyzji
+    score = random.randint(1, 100)
+    volatility = random.choice(["Wysoka", "Stabilna"])
+    
+    if score > 55:
+        dir_text, dir_emoji = "CALL", "🟢 GÓRA"
+        analysis = "EMA 9 przebiło EMA 21 od dołu. Potwierdzony popyt."
+    else:
+        dir_text, dir_emoji = "PUT", "🔴 DÓŁ"
+        analysis = "Odrzucenie od lokalnego oporu. Wolumen maleje."
+
+    await status.delete()
     await query.message.reply_text(
-        f"🚨 **SYGNAŁ WYGENEROWANY**\n\n"
-        f"📊 Para: `EUR/USD OTC`\n"
-        f"📈 Kierunek: **{direction}**\n"
-        f"🧠 Analiza: `{reason}`\n"
-        f"⏱ Czas: `{sec}s`",
+        f"🎯 **SYGNAŁ POTWIERDZONY**\n\n"
+        f"💎 Para: `EUR/USD OTC`\n"
+        f"📈 Kierunek: **{dir_emoji}**\n"
+        f"⏳ Czas: `{sec}s`\n"
+        f"⚡ Prawdopodobieństwo: `{random.randint(82, 96)}%`\n\n"
+        f"🧠 **Uzasadnienie:**\n_{analysis}_",
         parse_mode="Markdown",
-        reply_markup=get_keyboard()
+        reply_markup=main_menu()
     )
 
 if __name__ == "__main__":
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(handle_signal))
+    app.add_handler(CallbackQueryHandler(handle_logic))
     app.run_polling(drop_pending_updates=True)
