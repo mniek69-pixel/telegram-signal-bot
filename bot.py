@@ -46,7 +46,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         power = random.randint(3, 5)
         reason = "Presja podaży (Overbought)"
 
-    pair = random.choice(["EUR/USD OTC", "GBP/JPY OTC", "AUD/CAD OTC", "USD/JPY OTC"])
+    pair = random.choice(["EUR/USD OTC"])
     stars = "⚡" * power
 
     await status_msg.delete() # Usuwamy komunikat o skanowaniu
