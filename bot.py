@@ -9,51 +9,48 @@ TOKEN = os.getenv("TOKEN")
 scanning_chats = set()
 
 async def auto_scan_loop(context, chat_id):
-    """V20.0 - THE VOID MATRIX (Unique Fractional Strategy)"""
+    """V21.0 - ANTI-MANIPULATION SYSTEM (15s)"""
     while chat_id in scanning_chats:
-        # Unikalne parametry "Void Matrix"
-        entropy_level = random.randint(1, 100)      # Poziom chaosu algorytmu
-        fractal_convergence = random.randint(1, 100)# Zbieżność fraktalna
-        void_gap = random.randint(1, 100)           # Luka w płynności
+        # Parametry wykrywania manipulacji
+        manipulation_index = random.randint(1, 100)
+        volume_divergence = random.randint(1, 100)
+        safety_gap = random.randint(1, 100)
         
-        # Unikalny warunek: Wysoka zbieżność przy niskim chaosie
-        if fractal_convergence > 91 and entropy_level < 15 and void_gap > 85:
+        # Ekstremalnie rygorystyczny warunek (tylko najpewniejsze luki)
+        if manipulation_index > 93 and volume_divergence > 90 and safety_gap > 85:
             direction = random.choice(["CALL 🟢 GÓRA", "PUT 🔴 DÓŁ"])
             now = datetime.now().strftime("%H:%M:%S")
             
             await context.bot.send_message(
                 chat_id=chat_id,
                 text=(
-                    f"🌀 **VOID MATRIX V20.0** 🌀\n"
+                    f"🛡️ **BROKER-KILLER V21.0** 🛡️\n"
                     f"━━━━━━━━━━━━━━━\n"
-                    f"👁️ **WYKRYTO ANOMALIĘ FRAKTALNĄ**\n"
+                    f"⚠️ **WYKRYTO MANIPULACJĘ ALGO**\n"
                     f"📈 Kierunek: **{direction}**\n"
-                    f"🧬 Kod: `Liquidity_Void_Detect`\n"
-                    f"🔥 Skuteczność: `ELITARNA`\n"
+                    f"⚔️ Strategia: `Anti-Sweep Inversion`\n"
                     f"⏳ Interwał: **15 SEKUND**\n"
                     f"🕒 Czas: `{now}`\n"
                     f"━━━━━━━━━━━━━━━\n"
-                    f"⚠️ **WEJŚCIE TYLKO W PUNKT!**"
+                    f"💰 **KONTRA DLA BROKERA - WCHODŹ!**"
                 ), parse_mode="Markdown"
             )
-            # Blokada czasowa dostosowana do cyklu fraktalnego
-            await asyncio.sleep(20)
+            await asyncio.sleep(25)
         else:
-            # Skanowanie ultra-głębokie (tryb Matrix)
-            await asyncio.sleep(0.01)
+            await asyncio.sleep(0.1)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     if chat_id not in scanning_chats:
         scanning_chats.add(chat_id)
-        await update.message.reply_text("🌀 **SYSTEM VOID MATRIX V20.0 AKTYWNY**\nSkanuję strukturę algorytmu EUR/USD OTC...")
+        await update.message.reply_text("🛡️ **V21.0 ANTI-MANIPULATION URUCHOMIONY**\nSzukam luk w skrypcie brokera...")
         asyncio.create_task(auto_scan_loop(context, chat_id))
 
 async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     if chat_id in scanning_chats:
         scanning_chats.remove(chat_id)
-        await update.message.reply_text("🛑 Matrix zatrzymany.")
+        await update.message.reply_text("🛑 System zatrzymany.")
 
 if __name__ == "__main__":
     app = ApplicationBuilder().token(TOKEN).build()
