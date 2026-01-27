@@ -72,4 +72,9 @@ async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE):
 if __name__ == "__main__":
     if not TOKEN:
         print("Błąd: Brak TOKENA w Variables!")
-    else
+    else:
+        app = ApplicationBuilder().token(TOKEN).build()
+        app.add_handler(CommandHandler("start", start))
+        app.add_handler(CommandHandler("stop", stop))
+        print("Turbo Bot V8.2 Ready...")
+        app.run_polling(drop_pending_updates=True)
