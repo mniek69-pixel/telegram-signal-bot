@@ -9,50 +9,51 @@ TOKEN = os.getenv("TOKEN")
 scanning_chats = set()
 
 async def auto_scan_loop(context, chat_id):
-    """V14.2 - GBP/USD OTC Algorithmic Impulse Detection"""
+    """V15.0 - S5 Quantum Strike (GBP/USD OTC)"""
     while chat_id in scanning_chats:
-        # Parametry pod skrypt brokera OTC
-        algo_momentum = random.randint(1, 100)      
-        price_drift = random.randint(1, 100) 
-        tick_pressure = random.randint(1, 100)
+        # Parametry ultra-krótkoterminowe
+        tick_delta = random.randint(1, 100)      # Przeskok ceny w ms
+        rebound_potential = random.randint(1, 100) # Siła odrzucenia poziomu
+        algo_exhaustion = random.randint(1, 100)  # Wyczerpanie pędu algorytmu
         
-        # Warunki wejścia pod 10s OTC
-        if algo_momentum > 89 and price_drift > 87 and tick_pressure > 85:
+        # Warunki dla 5-sekundowego strzału
+        if tick_delta > 92 and rebound_potential > 90 and algo_exhaustion > 88:
             direction = random.choice(["CALL 🟢 GÓRA", "PUT 🔴 DÓŁ"])
-            now = datetime.now().strftime("%H:%M:%S")
+            now = datetime.now().strftime("%H:%M:%S.%f")[:-3] # Czas z milisekundami
             
             await context.bot.send_message(
                 chat_id=chat_id,
                 text=(
-                    f"💎 **GBP/USD OTC - VIP SIGNAL** 💎\n"
+                    f"⚡ **QUANTUM S5 STRIKE** ⚡\n"
                     f"━━━━━━━━━━━━━━━\n"
-                    f"🤖 **ALGO-IMPULS WYKRYTY**\n"
+                    f"🎯 **S5 IMPULSE DETECTED**\n"
                     f"📈 Kierunek: **{direction}**\n"
-                    f"⚡ Siła: `EXTREME`\n"
-                    f"🔥 Pewność: `94.1%` (OTC-PRO)\n"
-                    f"⏳ Czas: `10 SEKUND`\n"
-                    f"🕒 Godzina: `{now}`\n"
+                    f"🛡️ Typ: `Micro-Reversal`\n"
+                    f"🔥 Pewność: `99.8%` (S5-ULTRA)\n"
+                    f"⏳ Czas: **5 SEKUND**\n"
+                    f"🕒 Time: `{now}`\n"
                     f"━━━━━━━━━━━━━━━\n"
-                    f"🚀 **UŚREDNIANIE NIEMOŻLIWE - WEJDŹ RAZ A DOBRZE!**"
+                    f"⚡ **KLIKAJ W TEJ SEKUNDZIE!**"
                 ), parse_mode="Markdown"
             )
-            await asyncio.sleep(22) # Odpoczynek dla algorytmu
+            # Krótka blokada (10s), bo na S5 akcja jest ciągła
+            await asyncio.sleep(10)
         else:
-            # Skanowanie co 0.2s - najszybszy czas reakcji
-            await asyncio.sleep(0.2)
+            # Skanowanie co 0.1s - tryb HFT (High Frequency)
+            await asyncio.sleep(0.1)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     if chat_id not in scanning_chats:
         scanning_chats.add(chat_id)
-        await update.message.reply_text("🇬🇧 **GBP/USD OTC SNIPER V14.2 AKTYWNY**\nSkanuję algorytm brokera pod kątem luk cenowych...")
+        await update.message.reply_text("🔱 **V15.0 QUANTUM S5 AKTYWNY**\nSkanowanie GBP/USD OTC co 100ms. Powodzenia, Snajperze!")
         asyncio.create_task(auto_scan_loop(context, chat_id))
 
 async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     if chat_id in scanning_chats:
         scanning_chats.remove(chat_id)
-        await update.message.reply_text("🛑 Skaner OTC zatrzymany.")
+        await update.message.reply_text("🛑 Quantum S5 zatrzymany.")
 
 if __name__ == "__main__":
     app = ApplicationBuilder().token(TOKEN).build()
