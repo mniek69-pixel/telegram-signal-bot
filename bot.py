@@ -5,68 +5,63 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 
 TOKEN = os.getenv("TOKEN")
-user_data = {}
-
-def main_kb(step):
-    return InlineKeyboardMarkup([
-        [InlineKeyboardButton(f"✅ WIN ({step}/3)", callback_data=f"win_{step}"),
-         InlineKeyboardButton("❌ LOSS", callback_data="loss")]
-    ])
+user_state = {}
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    user_data[user_id] = {"pair": "AUD/CAD OTC", "step": 1}
+    uid = update.effective_user.id
+    user_state[uid] = {"pair": "AUD/CAD OTC", "wins": 0}
     await update.message.reply_text(
-        "👻 **GHOST DELAY V44.0** 👻\n"
-        "Status: `Invisibilty Mode Active`\n"
-        "Para: **AUD/CAD OTC**\n\n"
-        "Zasada: NIE KLIKAJ OD RAZU. Czekaj 2 sekundy po sygnale!",
-        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🎯 GENERUJ SYGNAŁ", callback_data="gen")]]))
+        "🧨 **REVERSE TRAP V45.0** 🧨\n"
+        "Status: `Anti-Broker Logic Enabled`\n"
+        "Zasada: Gramy PRZECIWKO logice, którą broker chce uwalić.\n\n"
+        "Obecna para: **AUD/CAD OTC**",
+        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⚡ GENERUJ SYGNAŁ KONTRA", callback_data="sig")]]))
 
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    user_id = query.from_user.id
-    data = query.data
+    uid = query.from_user.id
     await query.answer()
 
-    if user_id not in user_data: return
-    state = user_data[user_id]
+    if uid not in user_state: user_state[uid] = {"pair": "AUD/CAD OTC", "wins": 0}
+    st = user_state[uid]
 
-    if data == "loss":
-        state["step"] = 1
-        await query.message.reply_text("📉 Manipulacja wykryta. Resetuję profil...", 
-                                      reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔄 SPRÓBUJ PONOWNIE", callback_data="gen")]]))
+    if query.data == "loss":
+        st["wins"] = 0
+        await query.message.reply_text("❌ Przegrana. Broker zmienił algorytm. Reset...", 
+                                      reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔄 SZUKAJ NOWEJ LUKI", callback_data="sig")]]))
         return
 
-    if data == "gen" or data.startswith("win_"):
-        if data.startswith("win_"): state["step"] += 1
+    if query.data == "sig" or query.data == "win":
+        if query.data == "win": st["wins"] += 1
 
-        if state["step"] > 3:
-            state["pair"] = "AUD/NZD OTC" if state["pair"] == "AUD/CAD OTC" else "AUD/CAD OTC"
-            state["step"] = 1
-            await query.message.reply_text(f"🔄 **ZMIANA WYKRESU!** 🔄\nPrzejdź na: **{state['pair']}**",
-                                          reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🚀 START NOWEJ SERII", callback_data="gen")]]))
+        if st["wins"] >= 3:
+            st["pair"] = "AUD/NZD OTC" if st["pair"] == "AUD/CAD OTC" else "AUD/CAD OTC"
+            st["wins"] = 0
+            await query.message.reply_text(f"✅ **CYKL ZALICZONY!**\nZmień wykres na: **{st['pair']}**",
+                                          reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🚀 START NOWEJ SERII", callback_data="sig")]]))
             return
 
-        # Generowanie sygnału z opóźnieniem "Ghost"
-        loading = await query.message.reply_text("📡 Przechwytywanie danych OTC...")
-        await asyncio.sleep(random.uniform(1.2, 2.5))
-        await loading.delete()
-        
-        direction = random.choice(["CALL 🟢 (GÓRA)", "PUT 🔴 (DÓŁ)"])
-        time_frame = random.choice(["8s", "10s"])
+        wait = await query.message.reply_text("📡 Przechwytywanie pułapki brokera...")
+        await asyncio.sleep(random.uniform(0.5, 1.5))
+        await wait.delete()
+
+        # BRUTALNA INWERSJA
+        # Jeśli logika mówi CALL, bot wymusza PUT, bo broker i tak by uciął CALL.
+        raw_direction = random.choice(["CALL", "PUT"])
+        final_dir = "PUT 🔴 (DÓŁ)" if raw_direction == "CALL" else "CALL 🟢 (GÓRA)"
         
         await query.message.reply_text(
-            f"👻 **SYGNAŁ GHOST ({state['step']}/3)**\n"
+            f"🎯 **SYGNAŁ KONTRA ({st['wins']+1}/3)**\n"
             f"━━━━━━━━━━━━━━━\n"
-            f"💹 Para: **{state['pair']}**\n"
-            f"📈 Kierunek: **{direction}**\n"
-            f"⏳ Czas: `{time_frame}`\n"
+            f"📊 Para: **{st['pair']}**\n"
+            f"📈 Kierunek: **{final_dir}**\n"
+            f"⏳ Czas: `8 SEKUND`\n"
             f"━━━━━━━━━━━━━━━\n"
-            f"⚠️ **UWAGA:** Odlicz 2 sekundy w głowie i KLIKNIJ!",
-            reply_markup=main_kb(state["step"]),
-            parse_mode="Markdown"
-        )
+            f"⚠️ **WCHODŹ NATYCHMIAST!**",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("✅ WIN", callback_data="win"),
+                 InlineKeyboardButton("❌ LOSS", callback_data="loss")]
+            ]), parse_mode="Markdown")
 
 if __name__ == "__main__":
     app = ApplicationBuilder().token(TOKEN).build()
