@@ -5,23 +5,23 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 
 TOKEN = os.getenv("TOKEN")
-user_state = {}
+user_data = {}
 
-def get_ui(step, pair):
+def main_kb(step):
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton(f"✅ WYGRANA ({step}/3)", callback_data=f"win_{step}"),
-         InlineKeyboardButton("❌ LOSS", callback_data="fail")]
+        [InlineKeyboardButton(f"✅ WIN ({step}/3)", callback_data=f"win_{step}"),
+         InlineKeyboardButton("❌ LOSS", callback_data="loss")]
     ])
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    user_state[user_id] = {"pair": "AUD/CAD OTC", "step": 1}
+    user_data[user_id] = {"pair": "AUD/CAD OTC", "step": 1}
     await update.message.reply_text(
-        "🧠 **GLITCH HUNTER V43.0** 🧠\n"
-        "Status: `Infiltracja Algorytmu` ⚡\n"
+        "👻 **GHOST DELAY V44.0** 👻\n"
+        "Status: `Invisibilty Mode Active`\n"
         "Para: **AUD/CAD OTC**\n\n"
-        "Zasada: Graj PRZECIWKO gwałtownym ruchom.",
-        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🚀 SZUKAJ ANOMALII", callback_data="hunt")]]))
+        "Zasada: NIE KLIKAJ OD RAZU. Czekaj 2 sekundy po sygnale!",
+        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🎯 GENERUJ SYGNAŁ", callback_data="gen")]]))
 
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -29,42 +29,42 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     data = query.data
     await query.answer()
 
-    if user_id not in user_state: return
+    if user_id not in user_data: return
+    state = user_data[user_id]
 
-    state = user_state[user_id]
-
-    if data == "fail":
+    if data == "loss":
         state["step"] = 1
-        await query.message.reply_text("📉 Algorytm nas przeczytał. Resetujemy serię.", 
-                                      reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔄 PONÓW", callback_data="hunt")]]))
+        await query.message.reply_text("📉 Manipulacja wykryta. Resetuję profil...", 
+                                      reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔄 SPRÓBUJ PONOWNIE", callback_data="gen")]]))
         return
 
-    if data == "hunt" or data.startswith("win_"):
+    if data == "gen" or data.startswith("win_"):
         if data.startswith("win_"): state["step"] += 1
 
         if state["step"] > 3:
             state["pair"] = "AUD/NZD OTC" if state["pair"] == "AUD/CAD OTC" else "AUD/CAD OTC"
             state["step"] = 1
-            await query.message.reply_text(f"💎 **SERIA DOMKNIĘTA!** 💎\nUciekamy na parę: **{state['pair']}**",
-                                          reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🚀 START NOWEJ SERII", callback_data="hunt")]]))
+            await query.message.reply_text(f"🔄 **ZMIANA WYKRESU!** 🔄\nPrzejdź na: **{state['pair']}**",
+                                          reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🚀 START NOWEJ SERII", callback_data="gen")]]))
             return
 
-        # Generowanie sygnału "Anomalii"
-        msg = await query.message.reply_text("📡 Czekam na błąd serwera...")
-        await asyncio.sleep(random.uniform(0.3, 0.8))
+        # Generowanie sygnału z opóźnieniem "Ghost"
+        loading = await query.message.reply_text("📡 Przechwytywanie danych OTC...")
+        await asyncio.sleep(random.uniform(1.2, 2.5))
+        await loading.delete()
         
-        direction = random.choice(["PUT 🔴 (DÓŁ)", "CALL 🟢 (GÓRA)"])
+        direction = random.choice(["CALL 🟢 (GÓRA)", "PUT 🔴 (DÓŁ)"])
+        time_frame = random.choice(["8s", "10s"])
         
-        await msg.delete()
         await query.message.reply_text(
-            f"🎯 **ANOMALIA WYKRYTA! ({state['step']}/3)**\n"
+            f"👻 **SYGNAŁ GHOST ({state['step']}/3)**\n"
             f"━━━━━━━━━━━━━━━\n"
             f"💹 Para: **{state['pair']}**\n"
             f"📈 Kierunek: **{direction}**\n"
-            f"⏳ Czas: `8 SEKUND`\n"
-            f"⚠️ **WEJDŹ 2 RAZY (Double Tap)!**\n"
-            f"━━━━━━━━━━━━━━━",
-            reply_markup=get_ui(state["step"], state["pair"]),
+            f"⏳ Czas: `{time_frame}`\n"
+            f"━━━━━━━━━━━━━━━\n"
+            f"⚠️ **UWAGA:** Odlicz 2 sekundy w głowie i KLIKNIJ!",
+            reply_markup=main_kb(state["step"]),
             parse_mode="Markdown"
         )
 
