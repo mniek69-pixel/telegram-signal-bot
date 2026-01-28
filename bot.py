@@ -6,27 +6,30 @@ from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandle
 
 TOKEN = os.getenv("TOKEN")
 
-# Pamięć sesji (licznik kroków w sekwencji)
-user_sessions = {}
+# Pamięć sesji użytkownika
+user_data = {}
 
-def main_kb():
+def get_keyboard(step, pair):
     return InlineKeyboardMarkup([[
-        InlineKeyboardButton("🎯 SZUKAJ SETUPU (AUD/CAD OTC)", callback_data="find_setup")
+        InlineKeyboardButton(f"✅ KROK {step}/3 WYGRANY ({pair})", callback_data=f"win_{step}"),
+        InlineKeyboardButton("❌ PRZEGRANA (RESET CYKLU)", callback_data="reset")
     ]])
 
-def sequence_kb(step):
+def start_keyboard(pair):
     return InlineKeyboardMarkup([[
-        InlineKeyboardButton(f"✅ KROK {step} WYGRANY - DAWAJ DALEJ!", callback_data=f"step_{step+1}"),
-        InlineKeyboardButton("❌ PRZEGRANA (RESET)", callback_data="find_setup")
+        InlineKeyboardButton(f"🎯 START CYKLU: {pair}", callback_data="start_cycle")
     ]])
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    user_data[user_id] = {"pair": "AUD/CAD OTC", "step": 1, "dir": None}
+    
     await update.message.reply_text(
-        "🇦🇺 **AUD/CAD OTC - TRIPLE THREAT V41.0** 🇨🇦\n"
-        "Tryb: `Kaskadowy (3 Wejścia)`\n"
-        "Cel: Ominięcie manipulacji przez rozbicie pozycji.\n\n"
-        "Kliknij, aby znaleźć główny impuls:",
-        reply_markup=main_kb()
+        "🔄 **CYCLE SWITCHER V42.0** 🔄\n"
+        "Tryb: `8-Second Turbo Scalp` ⚡\n"
+        "Para startowa: **AUD/CAD OTC**\n\n"
+        "Zasada: 3 wygrane i zmiana wykresu!",
+        reply_markup=start_keyboard("AUD/CAD OTC")
     )
 
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -35,46 +38,55 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     data = query.data
     await query.answer()
 
-    if data == "find_setup":
-        user_sessions[user_id] = {"step": 1, "dir": None}
-        msg = await query.message.reply_text("📡 Skanowanie AUD/CAD OTC w poszukiwaniu luki...")
-        await asyncio.sleep(1)
-        
-        # Losujemy kierunek raz dla całej serii 3 wejść (bo idziemy z prądem)
-        direction = random.choice(["CALL 🟢 (GÓRA)", "PUT 🔴 (DÓŁ)"])
-        user_sessions[user_id]["dir"] = direction
-        
-        await msg.delete()
-        await query.message.reply_text(
-            f"🔥 **WYKRYTO IMPULS! KROK 1/3** 🔥\n"
-            f"━━━━━━━━━━━━━━━\n"
-            f"📊 Para: **AUD/CAD OTC**\n"
-            f"📈 Kierunek: **{direction}**\n"
-            f"⏳ Czas: `10-15s`\n"
-            f"💪 Pewność: `⭐⭐⭐⭐⭐` (SMC Master)\n"
-            f"━━━━━━━━━━━━━━━\n"
-            f"⚡ **WEJDŹ TERAZ (1-szy strzał)!**",
-            reply_markup=sequence_kb(1)
-        )
+    if user_id not in user_data:
+        user_data[user_id] = {"pair": "AUD/CAD OTC", "step": 1, "dir": None}
 
-    elif data.startswith("step_"):
-        step = int(data.split("_")[1])
-        
-        if step > 3:
+    state = user_data[user_id]
+
+    # Resetowanie przy przegranej
+    if data == "reset":
+        state["step"] = 1
+        await query.message.reply_text(f"📉 Przegrana. Resetujemy serię na **{state['pair']}**.", reply_markup=start_keyboard(state['pair']))
+        return
+
+    # Start lub kolejny krok
+    if data == "start_cycle" or data.startswith("win_"):
+        if data.startswith("win_"):
+            state["step"] += 1
+
+        # Sprawdzenie czy cykl 3 wygranych dobiegł końca
+        if state["step"] > 3:
+            # ZMIANA PARY
+            old_pair = state["pair"]
+            state["pair"] = "AUD/NZD OTC" if old_pair == "AUD/CAD OTC" else "AUD/CAD OTC"
+            state["step"] = 1
             await query.message.reply_text(
-                "💰 **SEKWENCJA ZAKOŃCZONA!** 💰\n"
-                "3/3 Wygrane. Broker nie zdążył zareagować.\n"
-                "Zrób 2 minuty przerwy i zacznij nową serię.",
-                reply_markup=main_kb()
+                f"💰 **CYKL DOMKNIĘTY! 3/3 WYGRANE!** 💰\n"
+                f"Broker namierzył {old_pair}... **UCIEKAMY!**\n\n"
+                f"Przełącz się na: **{state['pair']}**",
+                reply_markup=start_keyboard(state['pair'])
             )
             return
 
-        direction = user_sessions[user_id]["dir"]
+        # Generowanie sygnału
+        msg = await query.message.reply_text(f"📡 Skanowanie {state['pair']}...")
+        await asyncio.sleep(0.5)
+        
+        # Logika kierunku (na 8s szukamy impulsu)
+        direction = random.choice(["CALL ⬆️ GÓRA", "PUT ⬇️ DÓŁ"])
+        emoji = "🟢" if "CALL" in direction else "🔴"
+        
+        await msg.delete()
         await query.message.reply_text(
-            f"🚀 **KONTYNUACJA! KROK {step}/3** 🚀\n"
-            f"Kierunek: **{direction}**\n"
-            f"Wchodź natychmiast, póki pęd trwa!",
-            reply_markup=sequence_kb(step)
+            f"{emoji} **SYGNAŁ {state['step']}/3** {emoji}\n"
+            f"━━━━━━━━━━━━━━━\n"
+            f"💹 Para: **{state['pair']}**\n"
+            f"📈 Kierunek: **{direction}**\n"
+            f"⏳ Czas: `8 SEKUND`\n"
+            f"━━━━━━━━━━━━━━━\n"
+            f"⚡ **REAGUJ BŁYSKAWICZNIE!**",
+            reply_markup=get_keyboard(state["step"], state["pair"]),
+            parse_mode="Markdown"
         )
 
 if __name__ == "__main__":
