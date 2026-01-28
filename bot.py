@@ -5,32 +5,23 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 
 TOKEN = os.getenv("TOKEN")
+user_state = {}
 
-# Pamięć sesji użytkownika
-user_data = {}
-
-def get_keyboard(step, pair):
-    return InlineKeyboardMarkup([[
-        InlineKeyboardButton(f"✅ KROK {step}/3 WYGRANY ({pair})", callback_data=f"win_{step}"),
-        InlineKeyboardButton("❌ PRZEGRANA (RESET CYKLU)", callback_data="reset")
-    ]])
-
-def start_keyboard(pair):
-    return InlineKeyboardMarkup([[
-        InlineKeyboardButton(f"🎯 START CYKLU: {pair}", callback_data="start_cycle")
-    ]])
+def get_ui(step, pair):
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton(f"✅ WYGRANA ({step}/3)", callback_data=f"win_{step}"),
+         InlineKeyboardButton("❌ LOSS", callback_data="fail")]
+    ])
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    user_data[user_id] = {"pair": "AUD/CAD OTC", "step": 1, "dir": None}
-    
+    user_state[user_id] = {"pair": "AUD/CAD OTC", "step": 1}
     await update.message.reply_text(
-        "🔄 **CYCLE SWITCHER V42.0** 🔄\n"
-        "Tryb: `8-Second Turbo Scalp` ⚡\n"
-        "Para startowa: **AUD/CAD OTC**\n\n"
-        "Zasada: 3 wygrane i zmiana wykresu!",
-        reply_markup=start_keyboard("AUD/CAD OTC")
-    )
+        "🧠 **GLITCH HUNTER V43.0** 🧠\n"
+        "Status: `Infiltracja Algorytmu` ⚡\n"
+        "Para: **AUD/CAD OTC**\n\n"
+        "Zasada: Graj PRZECIWKO gwałtownym ruchom.",
+        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🚀 SZUKAJ ANOMALII", callback_data="hunt")]]))
 
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -38,54 +29,42 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     data = query.data
     await query.answer()
 
-    if user_id not in user_data:
-        user_data[user_id] = {"pair": "AUD/CAD OTC", "step": 1, "dir": None}
+    if user_id not in user_state: return
 
-    state = user_data[user_id]
+    state = user_state[user_id]
 
-    # Resetowanie przy przegranej
-    if data == "reset":
+    if data == "fail":
         state["step"] = 1
-        await query.message.reply_text(f"📉 Przegrana. Resetujemy serię na **{state['pair']}**.", reply_markup=start_keyboard(state['pair']))
+        await query.message.reply_text("📉 Algorytm nas przeczytał. Resetujemy serię.", 
+                                      reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔄 PONÓW", callback_data="hunt")]]))
         return
 
-    # Start lub kolejny krok
-    if data == "start_cycle" or data.startswith("win_"):
-        if data.startswith("win_"):
-            state["step"] += 1
+    if data == "hunt" or data.startswith("win_"):
+        if data.startswith("win_"): state["step"] += 1
 
-        # Sprawdzenie czy cykl 3 wygranych dobiegł końca
         if state["step"] > 3:
-            # ZMIANA PARY
-            old_pair = state["pair"]
-            state["pair"] = "AUD/NZD OTC" if old_pair == "AUD/CAD OTC" else "AUD/CAD OTC"
+            state["pair"] = "AUD/NZD OTC" if state["pair"] == "AUD/CAD OTC" else "AUD/CAD OTC"
             state["step"] = 1
-            await query.message.reply_text(
-                f"💰 **CYKL DOMKNIĘTY! 3/3 WYGRANE!** 💰\n"
-                f"Broker namierzył {old_pair}... **UCIEKAMY!**\n\n"
-                f"Przełącz się na: **{state['pair']}**",
-                reply_markup=start_keyboard(state['pair'])
-            )
+            await query.message.reply_text(f"💎 **SERIA DOMKNIĘTA!** 💎\nUciekamy na parę: **{state['pair']}**",
+                                          reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🚀 START NOWEJ SERII", callback_data="hunt")]]))
             return
 
-        # Generowanie sygnału
-        msg = await query.message.reply_text(f"📡 Skanowanie {state['pair']}...")
-        await asyncio.sleep(0.5)
+        # Generowanie sygnału "Anomalii"
+        msg = await query.message.reply_text("📡 Czekam na błąd serwera...")
+        await asyncio.sleep(random.uniform(0.3, 0.8))
         
-        # Logika kierunku (na 8s szukamy impulsu)
-        direction = random.choice(["CALL ⬆️ GÓRA", "PUT ⬇️ DÓŁ"])
-        emoji = "🟢" if "CALL" in direction else "🔴"
+        direction = random.choice(["PUT 🔴 (DÓŁ)", "CALL 🟢 (GÓRA)"])
         
         await msg.delete()
         await query.message.reply_text(
-            f"{emoji} **SYGNAŁ {state['step']}/3** {emoji}\n"
+            f"🎯 **ANOMALIA WYKRYTA! ({state['step']}/3)**\n"
             f"━━━━━━━━━━━━━━━\n"
             f"💹 Para: **{state['pair']}**\n"
             f"📈 Kierunek: **{direction}**\n"
             f"⏳ Czas: `8 SEKUND`\n"
-            f"━━━━━━━━━━━━━━━\n"
-            f"⚡ **REAGUJ BŁYSKAWICZNIE!**",
-            reply_markup=get_keyboard(state["step"], state["pair"]),
+            f"⚠️ **WEJDŹ 2 RAZY (Double Tap)!**\n"
+            f"━━━━━━━━━━━━━━━",
+            reply_markup=get_ui(state["step"], state["pair"]),
             parse_mode="Markdown"
         )
 
